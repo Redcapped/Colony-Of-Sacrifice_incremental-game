@@ -37,16 +37,24 @@
 
     <!-- Main Tab -->
     <div id="main" class="tab active">
-      <h1>Incremental Game</h1>
-      <button class="main-btn" onclick="collectWater(1)">Collect Waterdrop (+1)</button><br>
-      <button class="main-btn" id="woodBtn" onclick="collectWood()" style="display:none;">Collect Woodshard; cost 2💧 waterdrops</button><br>
-      <button class="main-btn" id="sugarBtn" onclick="collectSugar()" style="display:none;">Collect Sugarcrystal; cost 5💧 waterdrops</button><br>
-      <button class="main-btn" id="recruitAntBtn" onclick="recruitAnt()" style="display:none;">Recruit Ant; cost 5 Sugarcrystals</button><br>
-      <button class="main-btn" id="buildAnthutBtn" onclick="buyAnthut()" style="display:none;">
-        Build Anthut (+2 max ants, Cost: 10 Sugarcrystals)
-      </button>
-    </div>
+    <h1>Incremental Game</h1>
 
+    <button class="main-btn" onclick="collectWater(1)">Collect Waterdrop (+1)</button><br>
+    <button class="main-btn" id="woodBtn" onclick="collectWood()" style="display:none;">Collect Woodshard; cost 2💧 waterdrops</button><br>
+    <button class="main-btn" id="sugarBtn" onclick="collectSugar()" style="display:none;">Collect Sugarcrystal; cost 5💧 waterdrops</button><br>
+    <button class="main-btn" id="recruitAntBtn" onclick="recruitAnt()" style="display:none;">Recruit Ant; cost 5 Sugarcrystals</button><br>
+
+    <!-- White line separator -->
+    <hr class="separator">
+
+    <!-- Buildings section -->
+    <div id="buildings">
+        <button class="build-btn" id="buildAntHutBtn" onclick="buyAnthut()" style="display:none;">
+        Build Anthut (+2 max ants, Cost: 10 Sugarcrystals)
+        </button>
+        <!-- Add more building buttons here if needed -->
+    </div>
+    </div>
     <!-- Research Tab -->
     <div id="research" class="tab">
       <h1>Research (Tech Tree)</h1>

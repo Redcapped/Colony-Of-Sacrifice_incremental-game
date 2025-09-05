@@ -2,22 +2,11 @@
 
 function getDefaultGameData() {
   return {
-    water: 0,
-    waterStorageMax: 25,
-    waterProdFactor:1,
-    wood: 0,
-    woodStorageMax: 25,
-    woodUnlocked: false,
-    woodCost: 2,
-    sugar: 0,
-    sugarStorageMax: 25,
-    sugarUnlocked: false,
-    sugarCost: 5,
-    maxAnts: 10,
-    assignedAnts: { free: 0, water: 0, wood: 0, sugar: 0 },
-    anthutLevel: 0,
-    anthutBaseCost: 10,
-    anthutCostMultiplier: 1.25,
+    water: 0,waterStorageMax: 25,waterProdFactor:1,
+    wood: 0,woodStorageMax: 25,woodUnlocked: false,woodCost: 2,
+    sugar: 0,sugarStorageMax: 25,sugarUnlocked: false,sugarCost: 5,
+    maxAnts: 10,assignedAnts: { free: 0, water: 0, wood: 0, sugar: 0 },
+    anthutUnlocked: false,anthutLevel: 0,anthutBaseCost: 10,anthutCostMultiplier: 1.25,anthutResidens:2,
     research: {}
   };
 }
@@ -89,7 +78,7 @@ const techTree = [
     desc:'Allows building Anthill to increase max ants.',
     cost:{sugar:20, wood:10},
     prereq:['pheromones','woodUnlock'],
-    effect:()=>{ document.getElementById("buildAntHutBtn").style.display="inline-block"; }
+    effect:()=>{ gameData.anthutUnlocked = true,update_unlocks(); }
   }
 ];
 
@@ -182,6 +171,7 @@ function buyAnthut(){
 function update(){ update_resource(); }
 function update_unlocks(){
   if(gameData.woodUnlocked){document.getElementById("woodBtn").style.display="inline-block"; document.getElementById("woodResource").style.display="flex";  document.getElementById("woodAntLine").style.display = "inline-block"; }
+  if(gameData.anthutUnlocked){document.getElementById("buildAntHutBtn").style.display="inline-block";}
   update()
 
 }
@@ -340,6 +330,7 @@ window.onload = function(){
   loadGame();
   initTechTree();
   update_resource();
+  update_unlocks();
   setInterval(autoCollect,1000);
   setInterval(consumeSugar,10000);
 }
