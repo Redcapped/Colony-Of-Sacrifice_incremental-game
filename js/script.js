@@ -70,7 +70,7 @@ const techTree = [
     desc:'Unlocks the ability to recruit ants.',
     cost:{sugar:5},
     prereq:[],
-    effect:()=>{ gameData.recruitAntUnlockeddocument=true; document.getElementById("recruitAntBtn").style.display="inline-block"; }
+    effect:()=>{ gameData.recruitAntUnlocked=true; document.getElementById("recruitAntBtn").style.display="inline-block"; }
   },
   {
     id:'anthutTech',
