@@ -67,7 +67,7 @@ const techTree = [
   },
     {
     id:'waterProd 1',
-    name:'What is we make bowls of wood',
+    name:'What if we make bowls of wood',
     desc:'double the speed the ants collect water',
     cost:{water:15,wood:25},
     prereq:['woodUnlock'],
