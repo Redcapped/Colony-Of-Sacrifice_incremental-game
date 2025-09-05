@@ -5,7 +5,7 @@ function getDefaultGameData() {
     water: 0,waterStorageMax: 25,waterProdFactor:1,
     wood: 0,woodStorageMax: 25,woodUnlocked: false,woodCost: 2,
     sugar: 0,sugarStorageMax: 25,sugarUnlocked: false,sugarCost: 5,
-    maxAnts: 10,assignedAnts: { free: 0, water: 0, wood: 0, sugar: 0 },
+    recruitAntUnlocked:false,maxAnts: 10,assignedAnts: { free: 0, water: 0, wood: 0, sugar: 0 },
     anthutUnlocked: false,anthutLevel: 0,anthutBaseCost: 10,anthutCostMultiplier: 1.25,anthutResidens:2,
     research: {}
   };
@@ -70,7 +70,7 @@ const techTree = [
     desc:'Unlocks the ability to recruit ants.',
     cost:{sugar:5},
     prereq:[],
-    effect:()=>{ document.getElementById("recruitAntBtn").style.display="inline-block"; }
+    effect:()=>{ gameData.recruitAntUnlockeddocument=true; document.getElementById("recruitAntBtn").style.display="inline-block"; }
   },
   {
     id:'anthutTech',
