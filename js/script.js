@@ -165,13 +165,14 @@ function buyAnthut(){
   gameData.wood -= cost;
   gameData.anthutLevel++;
   gameData.maxAnts += 2;
-  update();
   document.getElementById("buildAnthutBtn").innerText = `Build Anthut (+5 max ants, Cost: ${Math.floor(gameData.anthutBaseCost * Math.pow(gameData.anthutCostMultiplier, gameData.anthutLevel))} woodspliters)`;
+  update();
 }
 function update(){ update_resource(); }
 function update_unlocks(){
   if(gameData.woodUnlocked){document.getElementById("woodBtn").style.display="inline-block"; document.getElementById("woodResource").style.display="flex";  document.getElementById("woodAntLine").style.display = "inline-block"; }
-  if(gameData.anthutUnlocked){document.getElementById("buildAntHutBtn").style.display="inline-block";}
+  if(gameData.anthutUnlocked){document.getElementById("buildAntHutBtn").style.display="inline-block"; document.getElementById("buildAnthutBtn").innerText = `Build Anthut (+5 max ants, Cost: ${Math.floor(gameData.anthutBaseCost * Math.pow(gameData.anthutCostMultiplier, gameData.anthutLevel))} woodspliters)`}
+  if(gameData.recruitAntUnlocked){document.getElementById("recruitAntBtn").style.display="inline-block";}
   update()
 
 }
