@@ -1,0 +1,77 @@
+body { font-family: Arial, sans-serif; margin:0; display:flex; }
+#resourceBar {
+  position: fixed; top:0; left:0; height:100%; width:260px;
+  background:#f0f0f0; padding:20px; border-right:2px solid #ccc;
+  display:flex; flex-direction:column; gap:25px; font-size:18px; font-weight:bold; box-sizing:border-box;
+}
+.resource { display:flex; flex-direction:column; gap:6px; }
+.label { display:flex; justify-content:space-between; align-items:center; }
+progress { width:100%; height:15px; }
+.gameContent { margin-left:280px; padding:20px; flex-grow:1; }
+.tab { display:none; }
+.tab.active { display:block; }
+.tab-buttons { margin-bottom:20px; }
+.tab-buttons button { margin:5px; padding:10px 20px; font-size:16px; cursor:pointer; }
+.info { font-size:12px; color:#555; }
+
+/* Main page buttons */
+.main-btn {
+  display:inline-block;
+  margin:8px 0;
+  padding:12px 24px;
+  font-size:16px;
+  font-weight:bold;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  background: linear-gradient(to right, #4CAF50, #45a049);
+  color:white;
+  transition: transform 0.1s, background 0.2s;
+}
+.main-btn:hover { transform: scale(1.05); background: linear-gradient(to right, #45a049, #4CAF50); }
+
+/* Tech grid layout */
+.tech-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-top: 15px;
+}
+
+/* Tech buttons */
+.tech-btn { 
+  padding: 12px;
+  font-size: 14px;
+  cursor: pointer; 
+  border-radius: 6px; 
+  background:#eee; 
+  border:1px solid #ccc; 
+  transition: background 0.2s; 
+  position: relative;
+}
+.tech-btn:hover:not(:disabled) { background:#ddd; }
+.tech-btn:disabled { background:#ccc; cursor:not-allowed; }
+
+/* Tooltip */
+.tech-btn .tooltip {
+  visibility: hidden;
+  opacity: 0;
+  background: #333;
+  color: #fff;
+  text-align: left;
+  padding: 6px 10px;
+  border-radius: 6px;
+  position: absolute;
+  bottom: 110%;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: pre-line;
+  transition: opacity 0.2s;
+  z-index: 10;
+}
+.tech-btn:hover .tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+.research-subtab { display: none; }
+.research-subtab.active { display: block; }

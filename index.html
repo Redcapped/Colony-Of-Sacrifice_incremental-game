@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Ant World</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="resourceBar">
+    <div class="resource" id="antResource">
+      <div class="label">🐜 Ants: <span id="antCount">0/0</span></div>
+      <progress id="antBar" value="0" max="10"></progress>
+    </div>
+    <div class="resource">
+      <div class="label">💧 Waterdrops: <span id="waterDrops">0</span></div>
+      <progress id="waterBar" value="0" max="25"></progress>
+      <div class="info" id="waterInfo"></div>
+    </div>
+    <div class="resource" id="woodResource" style="display:none;">
+      <div class="label">🌲 Woodspliters: <span id="woodSpliters">0</span></div>
+      <progress id="woodBar" value="0" max="25"></progress>
+      <div class="info" id="woodInfo"></div>
+    </div>
+    <div class="resource" id="sugarResource" style="display:none;">
+      <div class="label">🍬 Sugarcrystals: <span id="sugarCrystals">0</span></div>
+      <progress id="sugarBar" value="0" max="25"></progress>
+      <div class="info" id="sugarInfo"></div>
+    </div>
+  </div>
+
+  <div class="gameContent">
+    <div class="tab-buttons">
+      <button onclick="openTab('main')">Main</button>
+      <button onclick="openTab('research')">Research</button>
+      <button onclick="openTab('ants')">Ants</button>
+      <button onclick="openTab('settings')">Settings</button>
+    </div>
+
+    <!-- Main Tab -->
+    <div id="main" class="tab active">
+      <h1>Incremental Game</h1>
+      <button class="main-btn" onclick="collectWater(1)">Collect Waterdrop (+1)</button><br>
+      <button class="main-btn" id="woodBtn" onclick="collectWood()" style="display:none;">Collect Woodshard; cost 2💧 waterdrops</button><br>
+      <button class="main-btn" id="sugarBtn" onclick="collectSugar()" style="display:none;">Collect Sugarcrystal; cost 5💧 waterdrops</button><br>
+      <button class="main-btn" id="recruitAntBtn" onclick="recruitAnt()" style="display:none;">Recruit Ant; cost 5 Sugarcrystals</button><br>
+      <button class="main-btn" id="buildAnthutBtn" onclick="buyAnthut()" style="display:none;">
+        Build Anthut (+2 max ants, Cost: 10 Sugarcrystals)
+      </button>
+    </div>
+
+    <!-- Research Tab -->
+    <div id="research" class="tab">
+      <h1>Research (Tech Tree)</h1>
+    
+      <div class="tab-buttons">
+        <button onclick="openResearchTab('available')">Available Upgrades</button>
+        <button onclick="openResearchTab('purchased')">Purchased Upgrades</button>
+      </div>
+
+      <div id="research-available" class="research-subtab active">
+        <div id="availableTechs" class="tech-grid"></div>
+      </div>
+
+      <div id="research-purchased" class="research-subtab">
+        <div id="purchasedTechs" class="tech-grid"></div>
+      </div>
+    </div>
+
+    <!-- Ants Tab -->
+    <div id="ants" class="tab">
+      <h1>Assign Ants to Jobs</h1>
+        <div>
+            Water: <button onclick="adjustAnt('water', -1)">-</button> <span id="antsWater">0</span> <button onclick="adjustAnt('water', 1)">+</button><br>
+            Sugar: <button onclick="adjustAnt('sugar', -1)">-</button> <span id="antsSugar">0</span> <button onclick="adjustAnt('sugar', 1)">+</button><br>
+            <span id="woodAntLine" style="display:none;">
+            Wood: 
+            <button id="btnAntWoodMinus" onclick="adjustAnt('wood', -1)">-</button> 
+            <span id="antsWood">0</span> 
+            <button id="btnAntWoodPlus" onclick="adjustAnt('wood', 1)">+</button>
+            </span><br>
+        </div>
+    </div>  
+
+    <!-- Settings Tab -->
+    <div id="settings" class="tab">
+      <h1>Settings</h1>
+      <button class="main-btn" onclick="resetGame()">Reset Game 🔄</button>
+    </div>
+  </div>
+
+  <script src="js/script.js"></script>
+</body>
+</html>
