@@ -8,7 +8,6 @@
   <div id="resourceBar">
     <div class="resource" id="antResource">
       <div class="label">🐜 Ants: <span id="antCount">0/0</span></div>
-      <progress id="antBar" value="0" max="10"></progress>
     </div>
     <div class="resource">
       <div class="label">💧 Waterdrops: <span id="waterDrops">0</span></div>
@@ -28,40 +27,37 @@
   </div>
 
   <div class="gameContent">
-    <div class="tab-buttons">
-      <button onclick="openTab('main')">Main</button>
-      <button onclick="openTab('research')">Research</button>
-      <button onclick="openTab('ants')">Ants</button>
-      <button onclick="openTab('settings')">Settings</button>
+    <div class="tab-bar">
+      <button id="tabMainBtn">Main</button>
+      <button id="tabResearchBtn">Research</button>
+      <button id="tabAntsBtn">Ants</button>
+      <button id="tabSettingsBtn">Settings</button>
     </div>
 
     <!-- Main Tab -->
     <div id="main" class="tab active">
-    <h1>Incremental Game</h1>
+      <h1>the Sacrifice colony</h1>
 
-    <button class="main-btn" onclick="collectWater(1)">Collect Waterdrop (+1)</button><br>
-    <button class="main-btn" id="woodBtn" onclick="collectWood()" style="display:none;">Collect Woodshard; cost 2💧 waterdrops</button><br>
-    <button class="main-btn" id="sugarBtn" onclick="collectSugar()" style="display:none;">Collect Sugarcrystal; cost 5💧 waterdrops</button><br>
-    <button class="main-btn" id="recruitAntBtn" onclick="recruitAnt()" style="display:none;">Recruit Ant; cost 5 Sugarcrystals</button><br>
+      <button id="collectWaterBtn" class="main-btn tooltip">Collect Waterdrop <span class="tooltiptext"> collect 1 water </span></button>
+      <button id="collectSugarBtn" class="main-btn tooltip" style="display:none;">Collect Sugarcrystal <span class="tooltiptext"> cost 5 water to collect 1 sugarcrystal </span></button>
+      <button id="collectWoodBtn" class="main-btn tooltip" style="display:none;">Collect Woodspliter <span class="tooltiptext"> cost 2 water to collect 1 woodsplinter </span></button>
+      <br>
+      <button id="recruitAntBtn" class="main-btn tooltip" style="display:none;">Recruit Ant <span class="tooltiptext"> cost 5 Sugarcrystals </span></button><br>
 
-    <!-- White line separator -->
-    <hr class="separator">
+      <hr class="separator">
 
-    <!-- Buildings section -->
-    <div id="buildings">
-        <button class="build-btn" id="buildAnthutBtn" onclick="buyAnthut()" style="display:none;">
-        
-        </button>
-        <!-- Add more building buttons here if needed -->
+      <div id="buildings">
+        <button id="buildAnthutBtn" class="build-btn" style="display:none;"></button>
+      </div>
     </div>
-    </div>
+
     <!-- Research Tab -->
     <div id="research" class="tab">
       <h1>Research (Tech Tree)</h1>
-    
+
       <div class="tab-buttons">
-        <button onclick="openResearchTab('available')">Available Upgrades</button>
-        <button onclick="openResearchTab('purchased')">Purchased Upgrades</button>
+        <button id="researchAvailableBtn">Available Upgrades</button>
+        <button id="researchPurchasedBtn">Purchased Upgrades</button>
       </div>
 
       <div id="research-available" class="research-subtab active">
@@ -76,25 +72,36 @@
     <!-- Ants Tab -->
     <div id="ants" class="tab">
       <h1>Assign Ants to Jobs</h1>
-        <div>
-            Water: <button onclick="adjustAnt('water', -1)">-</button> <span id="antsWater">0</span> <button onclick="adjustAnt('water', 1)">+</button><br>
-            Sugar: <button onclick="adjustAnt('sugar', -1)">-</button> <span id="antsSugar">0</span> <button onclick="adjustAnt('sugar', 1)">+</button><br>
-            <span id="woodAntLine" style="display:none;">
-            Wood: 
-            <button id="btnAntWoodMinus" onclick="adjustAnt('wood', -1)">-</button> 
-            <span id="antsWood">0</span> 
-            <button id="btnAntWoodPlus" onclick="adjustAnt('wood', 1)">+</button>
-            </span><br>
-        </div>
-    </div>  
+      <div id="breedingRate" style="display:inline-block;">
+         New ants per second: <span id="breedingRateValue">0</span>
+      </div>
+      <div>
+        Water: 
+        <button id="btnAntWaterMinus">-</button>
+        <span id="antsWater">0</span>
+        <button id="btnAntWaterPlus">+</button><br>
+
+        Sugar: 
+        <button id="btnAntSugarMinus">-</button>
+        <span id="antsSugar">0</span>
+        <button id="btnAntSugarPlus">+</button><br>
+
+        <span id="woodAntLine" style="display:none;">
+          Wood:
+          <button id="btnAntWoodMinus">-</button>
+          <span id="antsWood">0</span>
+          <button id="btnAntWoodPlus">+</button>
+        </span><br>
+      </div>
+    </div>
 
     <!-- Settings Tab -->
     <div id="settings" class="tab">
       <h1>Settings</h1>
-      <button class="main-btn" onclick="resetGame()">Reset Game 🔄</button>
+      <button id="resetGameBtn" class="main-btn">Reset Game 🔄</button>
     </div>
   </div>
 
-  <script src="js/script.js"></script>
+  <script type="module" src="js/game.js"></script>
 </body>
 </html>
