@@ -7,66 +7,10 @@
 <body>
 
   <!-- Resource Bar -->
+   
   <div id="resourceBar">
-    <!-- Ants -->
-    <div class="resource" id="antResource">
-      <div class="label">🐜 Ants: <span id="antCount">0/0</span></div>
-    </div>
-
-    <!-- Water -->
-    <div class="resource">
-      <div class="label">💧 Water: <span id="water">0</span></div>
-      <progress id="waterBar" value="0" max="25"></progress>
-      <div class="info" id="waterInfo"></div>
-    </div>
-
-    <!-- Wood -->
-    <div class="resource" id="woodResource" style="display:none;">
-      <div class="label">🌲 Wood: <span id="wood">0</span></div>
-      <progress id="woodBar" value="0" max="25"></progress>
-      <div class="info" id="woodInfo"></div>
-    </div>
-
-    <!-- Sugar -->
-    <div class="resource" id="sugarResource" style="display:none;">
-      <div class="label">🍬 Sugar: <span id="sugar">0</span></div>
-      <progress id="sugarBar" value="0" max="25"></progress>
-      <div class="info" id="sugarInfo"></div>
-    </div>
-
-    <!-- Stone (with bar, hover info) -->
-    <div class="resource" id="stoneResource">
-      <div class="label">🪨 Stone: <span id="stone">0</span></div>
-      <progress id="stoneBar" value="0" max="25" class="hover-info" data-info="0 gain / 0 loss"></progress>
-      <div class="info" id="stoneInfo"></div>
-    </div>
-
-    <!-- Number-only resources -->
-    <div id="numberResources">
-      <!-- Lumber -->
-      <div class="resource" id="lumberResource">
-        <div class="label">🪓 Lumber: 
-          <span id="lumber" class="hover-info" data-info="0 gain / 0 loss">0/0</span>
-        </div>
-        <div class="info" id="lumberInfo"></div>
-      </div>
-
-      <!-- Science -->
-      <div class="resource" id="scienceResource">
-        <div class="label">🔬 Science: 
-          <span id="science" class="hover-info" data-info="0 gain / 0 loss">0/0</span>
-        </div>
-        <div class="info" id="scienceInfo"></div>
-      </div>
-
-      <!-- Blood -->
-      <div class="resource" id="bloodResource">
-        <div class="label">🩸 Blood: 
-          <span id="blood" class="hover-info" data-info="0 gain / 0 loss">0/0</span>
-        </div>
-        <div class="info" id="bloodInfo"></div>
-      </div>
-    </div>
+    <div id="antSection"></div>
+    <div id="resourcesSection"></div>
   </div>
 
   <!-- Game Content -->
@@ -78,7 +22,7 @@
       <button id="tabAntsBtn">Ants</button>
       <button id="tabSettingsBtn">Settings</button>
     </div>
-
+    
     <!-- Main Tab -->
     <div id="main" class="tab active">
       <h1>the Sacrifice colony</h1>
@@ -171,6 +115,12 @@
           <button id="btnAntLumberMinus">-</button>
           <span id="antsLumber">0</span>
           <button id="btnAntLumberPlus">+</button>
+        </span><br>
+        <span id="scienceAntLine" style="display:none;">
+          science Ant:
+          <button id="btnAntscienceMinus">-</button>
+          <span id="antsScience">0</span>
+          <button id="btnAntsciencePlus">+</button>
         </span><br>
       </div>
     </div>

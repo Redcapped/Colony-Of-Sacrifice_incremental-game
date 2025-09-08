@@ -6,7 +6,7 @@ export const techTree = [
   {
     id:'waterhole',
     name:'Basic Understanding waterstorage',
-    desc:'Increase the waterdrops capacity by 25.',
+    desc:'Increase the water capacity by 25.',
     cost:{water:20},
     prereq:[],
     effect:()=>{
@@ -16,7 +16,7 @@ export const techTree = [
   {
     id:'waterhole 2',
     name:'Better Understanding waterstorage',
-    desc:'Increase the waterdrops capacity by 50.',
+    desc:'Increase the water capacity by 50.',
     cost:{water:45},
     prereq:['waterhole'],
     effect:()=>{
@@ -26,7 +26,7 @@ export const techTree = [
   {
     id:'waterhole 3',
     name:'Great Understanding waterstorage',
-    desc:'Increase the waterdrops capacity by 100.',
+    desc:'Increase the water capacity by 100.',
     cost:{water:90},
     prereq:['waterhole 2'],
     effect:()=>{
@@ -98,7 +98,24 @@ export const techTree = [
     gameData.resources.lumber.unlocked = true;
     update_unlocks();
   }
-}
+  },
+  
+  {
+    id:'cheaperSugar',
+    name:'building a bridge',
+    desc:'decreases the cost of sugar to 4 water',
+    cost:{lumber:10},
+    prereq:['lumberjackUnlock'],
+    effect:()=>{ gameData.resources.sugar.cost = {water:4},update_unlocks(); }
+  },
+  {
+    id:'scienceAnt',
+    name:'its science time',
+    desc:'decreases the cost of sugar to 4 water',
+    cost:{lumber:5},
+    prereq:['waterProd 1','lumberjackUnlock'],
+    effect:()=>{ gameData.resources.science.unlocked = true,update_unlocks(); }
+  },
 ];
 export function initTechTree(){ updateTechs(); }
 

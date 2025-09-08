@@ -18,7 +18,7 @@ export function update_unlocks() {
     wood:      { btn: "collectWoodBtn", res: "woodResource", antLine: "woodAntLine" },
     lumber:    { btn: null, res: "lumberResource", antLine: "lumberAntLine" },
     stone:     { btn: null, res: "stoneResource", antLine: null },
-    science:   { btn: null, res: "scienceResource", antLine: null },
+    science:   { btn: null, res: "scienceResource", antLine: "scienceAntLine"},
     blood:     { btn: null, res: "bloodResource", antLine: null },
     sugar:     { btn: "collectSugarBtn", res: "sugarResource", antLine: "sugarAntLine" }
   };
@@ -97,6 +97,8 @@ export function initGame() {
   initTechTree();
   update_resource();
   update_unlocks();
+  buildResourceUI();
+  buildAntUI()
 
   // ----------------- Intervals -----------------
   setInterval(autoCollect, 1000 / gameData.gameUpdateRate);
@@ -121,6 +123,8 @@ export function initGame() {
   document.getElementById('btnAntWoodPlus')?.addEventListener('click', () => adjustAnt('wood', 1));
   document.getElementById('btnAntLumberMinus')?.addEventListener('click', () => adjustAnt('lumber', -1));
   document.getElementById('btnAntLumberPlus')?.addEventListener('click', () => adjustAnt('lumber', 1));
+  document.getElementById('btnAntScienceMinus')?.addEventListener('click', () => adjustAnt('science', -1));
+  document.getElementById('btnAntSciencePlus')?.addEventListener('click', () => adjustAnt('science', 1));
 
   // Tabs
   document.getElementById('tabMainBtn')?.addEventListener('click', () => openTab('main'));
@@ -153,6 +157,83 @@ function loadGame() {
   update_resource();
   initTechTree(); // redraw tech tree correctly
 }
+export function buildResourceUI() {
+  const section = document.getElementById("resourcesSection");
+  section.innerHTML = ""; // clear any old content
+
+  // Loop through all resources in gameData
+  for (let resName in gameData.resources) {
+    const res = gameData.resources[resName];
+
+    // Only show if unlocked or alwaysVisible (optional)
+    if (!res.unlocked && !res.alwaysVisible) continue;
+
+    const row = document.createElement("div");
+    row.className = "resourceRow";
+    row.id = resName + "Row";
+
+    // Resource name
+    const nameSpan = document.createElement("span");
+    nameSpan.className = "resName";
+    nameSpan.innerText = resName.charAt(0).toUpperCase() + resName.slice(1);
+    row.appendChild(nameSpan);
+
+    // Progress bar
+    const bar = document.createElement("progress");
+    bar.id = resName + "Bar";
+    bar.value = 0;
+    bar.max = res.max || 100;
+    bar.classList.add("bar-medium");
+    bar.className = "bar";
+    row.appendChild(bar);
+
+    // Amount text
+    const amountSpan = document.createElement("span");
+    amountSpan.id = resName + "Amount";
+    amountSpan.className = "amount";
+    amountSpan.innerText = `0/${res.max || 0}`;
+    row.appendChild(amountSpan);
+
+    // Net gain
+    const netSpan = document.createElement("span");
+    netSpan.id = resName + "Net";
+    netSpan.className = "netGain";
+    netSpan.innerText = "+0/s";
+    row.appendChild(netSpan);
+
+    section.appendChild(row);
+  }
+}
+export function buildAntUI() {
+  const section = document.getElementById("antSection");
+  section.innerHTML = ""; // clear old content
+
+  const row = document.createElement("div");
+  row.className = "resourceRow"; // reuse same styling
+
+  // Label
+  const nameSpan = document.createElement("span");
+  nameSpan.className = "resName";
+  nameSpan.innerText = "Ants";
+  row.appendChild(nameSpan);
+
+  // Breeding bar
+  const bar = document.createElement("progress");
+  bar.id = "breedingBar";
+  bar.value = 0;
+  bar.max = 1; // breeding progress is fraction of an ant
+  bar.classList.add("bar-medium");
+  row.appendChild(bar);
+
+  // Ant count text
+  const countSpan = document.createElement("span");
+  countSpan.id = "antCount";
+  countSpan.innerText = `0/${gameData.ants.maxAnts}`;
+  row.appendChild(countSpan);
+
+  section.appendChild(row);
+}
+
 
 export function resetGame() {
 
@@ -162,13 +243,10 @@ export function resetGame() {
   for (let key in defaults) {
     gameData[key] = defaults[key];
   }
-  saveGame();
-  update_resource();
-  update_unlocks();
-  initTechTree();
-
-
+  
+  saveGame()
   window.location.reload();
+  initGame();
 }
 
 window.addEventListener('load', () => {

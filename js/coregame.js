@@ -5,10 +5,10 @@ export function getDefaultGameData() {
   return {
     gameUpdateRate:5,
     resources:{
-      water: { amount: 0, max: 25, prodFactor: 1, assigned: 'water',cost: {},info:{gain:0,loss:0}},
+      water: { amount: 0, max: 25, prodFactor: 1, assigned: 'water',cost: {},unlocked:true,info:{gain:0,loss:0}},
       wood:  { amount: 0, max: 25, prodFactor: 1, assigned: 'wood', cost: { water: 2 }, unlocked:false,info:{gain:0,loss:0}},
       sugar: { amount: 0, max: 25, prodFactor: 1, assigned: 'sugar', cost: { water: 5 },unlocked:false,info:{gain:0,loss:0}},
-      lumber:{ amount: 0, max: 25, prodFactor: 0.1, assigned:'lumber',cost:{wood:100},unlocked:false,info:{gain:0,loss:0}},
+      lumber:{ amount: 0, max: 20, prodFactor: 0.1, assigned:'lumber',cost:{wood:50},unlocked:false,info:{gain:0,loss:0}},
       stone: { amount: 0, max: 25, prodFactor: 1, assigned:'stone',cost: {},unlocked:false,info:{gain:0,loss:0}},
       science:{ amount: 0, max: 100, prodFactor: 0.1, assigned:'science',cost: {sugar:3},unlocked:false,info:{gain:0,loss:0}},
       blood:{ amount: 0, max: 100, prodFactor: 0.01, assigned:'blood',cost: {},unlocked:false,info:{gain:0,loss:0}}},
@@ -73,7 +73,7 @@ export function collectResource(key, amount) {
 
 
 export function recruitAnt(){
-  if(gameData.totalAnts >= gameData.maxAnts) return alert("Ant limit reached!");
+  if(getTotalAnts() >= gameData.ants.maxAnts) return alert("Ant limit reached!");
   if(gameData.resources.sugar.amount>=5){ gameData.resources.sugar.amount-=5; gameData.ants.assignedAnts.free++; update_resource(); }
 }
 
@@ -91,40 +91,47 @@ export function buyAnthut(){
 export function update_resourcesUI() {
   for (let key in gameData.resources) {
     const res = gameData.resources[key];
-    const span = document.getElementById(key);
+    const span = document.getElementById(key + "Amount");
     const bar = document.getElementById(key + "Bar");
     const info = document.getElementById(key + "Info");
+    const net = document.getElementById(key + "Net");
 
     if (span) span.innerText = `${Math.floor(res.amount)}/${res.max}`;
     if (bar) {
       bar.value = res.amount;
       bar.max = res.max;
     }
-
-    if (info && res.info) {
+    if (res.info){
       const gain = res.info.gain * gameData.gameUpdateRate;
       const loss = (res.info.loss || 0) * gameData.gameUpdateRate;
-      const net  = gain + loss;
-
-      let timeText = "∞";
-      let color = "gray";
-
+      var netgain = gain + loss;
+      var color = "gray";
+      var timeText = "∞";
       if (res.amount >= res.max) {
         timeText = "full";
         color = "gray";
-      } else if (net > 0) {
-        const time = (res.max - res.amount) / net;
+      } else if (netgain > 0) {
+        const time = (res.max - res.amount) / netgain;
         timeText = `Fill in ${Math.ceil(time)}s`;
         color = "green";
-      } else if (net < 0) {
-        const time = res.amount / Math.abs(net);
+      } else if (netgain < 0) {
+        const time = res.amount / Math.abs(netgain);
         timeText = `Empty in ${Math.ceil(time)}s`;
         color = "red";
       }
-
-      info.innerText = `+${gain.toFixed(2)}/s ${loss.toFixed(2)}/s = ${net.toFixed(2)}/s | ${timeText}`;
-      info.style.color = color;
     }
+    if (info) {
+
+      info.innerText = `+${gain.toFixed(2)}/s ${loss.toFixed(2)}/s = ${netgain.toFixed(2)}/s | ${timeText}`;
+      
+      info.style.color = color;
+      
+    }
+    if (net){
+      net.innerText = netgain.toFixed(2);
+      net.style.color = color;
+    }
+
   }
 }
 export function update_antsUI() {
