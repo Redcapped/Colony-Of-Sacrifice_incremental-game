@@ -82,12 +82,23 @@ export const techTree = [
   
   {
     id:'anthutTech',
-    name:'Outside anth Expansion Tech',
+    name:'Outside home for ants',
     desc:'Allows building Anthill to increase max ants.',
     cost:{sugar:20, wood:10},
     prereq:['pheromones','woodUnlock'],
     effect:()=>{ gameData.buildings.anthutUnlocked = true,update_unlocks(); }
+  },
+  {
+  id: 'lumberjackUnlock',
+  name: 'the termite life',
+  desc: 'Unlock the ability to create lumber. Only ants assigned as Lumberjacks ants can produce this resource.',
+  cost: { wood: 25 },
+  prereq: ['woodUnlock'], // You can change prerequisites if needed
+  effect: () => {
+    gameData.resources.lumber.unlocked = true;
+    update_unlocks();
   }
+}
 ];
 export function initTechTree(){ updateTechs(); }
 

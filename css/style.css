@@ -1,26 +1,107 @@
-body { font-family: Arial, sans-serif; margin:0; display:flex; }
-#resourceBar {
-  position: fixed; top:0%; left:0; height:100%; width:260px;
-  background:#f0f0f0; padding:20px; border-right:2px solid #ccc;
-  display:flex; flex-direction:column; gap:25px; font-size:18px; font-weight:bold; box-sizing:border-box;
+/* ---------------- General Body & Layout ---------------- */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
 }
-.resource { display:flex; flex-direction:column; gap:6px; }
-.label { display:flex; justify-content:space-between; align-items:center; }
-progress { width:100%; height:15px; }
-.gameContent { margin-left:280px; padding:20px; flex-grow:1; }
-.tab { display:none; }
-.tab.active { display:block; }
-.tab-buttons { margin-bottom:20px; }
-.tab-buttons button { margin:5px; padding:10px 20px; font-size:16px; cursor:pointer; }
-.info { font-size:12px; color:#555; }
 
+/* ---------------- Resource Bar ---------------- */
+#resourceBar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 260px;
+  background: #f0f0f0;
+  padding: 20px;
+  border-right: 2px solid #ccc;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  font-size: 18px;
+  font-weight: bold;
+  box-sizing: border-box;
+}
 
-/* Smaller main buttons */
+.resource {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+  margin-right: 20px;
+}
+
+.label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+progress {
+  width: 100%;
+  height: 15px;
+}
+
+.info {
+  font-size: 12px;
+  color: #fff;
+  background-color: black;
+  text-align: center;
+  padding: 5px 8px;
+  border-radius: 6px;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+/* Show info on hover (for number or progress) */
+.resource:hover .info {
+  opacity: 1;
+}
+
+/* ---------------- Game Content ---------------- */
+.gameContent {
+  margin-left: 280px; /* space for resource bar */
+  padding: 20px;
+  flex-grow: 1;
+}
+
+/* ---------------- Tabs ---------------- */
+.tab { display: none; }
+.tab.active { display: block; }
+
+.tab-bar {
+  width: 100%;
+  background-color: #303438;
+  display: flex;
+  gap: 0;
+  padding: 0.5% 0.5%;
+  box-sizing: border-box;
+}
+
+.tab-bar button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 14px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.tab-bar button:hover { text-decoration: underline; }
+.tab-bar button:focus { outline: none; }
+
+/* ---------------- Buttons ---------------- */
 .main-btn, .build-btn {
   display: inline-block;
   margin: 5px 0;
-  padding: 8px 16px;   /* smaller padding */
-  font-size: 14px;     /* smaller font */
+  padding: 8px 16px;
+  font-size: 14px;
   font-weight: bold;
   border: none;
   border-radius: 6px;
@@ -30,9 +111,9 @@ progress { width:100%; height:15px; }
   transition: transform 0.1s, background 0.2s;
 }
 
-.main-btn:hover, .build-btn:hover { 
-  transform: scale(1.05); 
-  background: linear-gradient(to right, #45a049, #4CAF50); 
+.main-btn:hover, .build-btn:hover {
+  transform: scale(1.05);
+  background: linear-gradient(to right, #45a049, #4CAF50);
 }
 
 /* White separator line */
@@ -50,9 +131,7 @@ progress { width:100%; height:15px; }
   gap: 10px;
 }
 
-.main-btn:hover { transform: scale(1.05); background: linear-gradient(to right, #45a049, #4CAF50); }
-
-/* Tech grid layout */
+/* ---------------- Tech Grid & Buttons ---------------- */
 .tech-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -60,21 +139,21 @@ progress { width:100%; height:15px; }
   margin-top: 15px;
 }
 
-/* Tech buttons */
-.tech-btn { 
+.tech-btn {
   padding: 12px;
   font-size: 14px;
-  cursor: pointer; 
-  border-radius: 6px; 
-  background:#eee; 
-  border:1px solid #ccc; 
-  transition: background 0.2s; 
+  cursor: pointer;
+  border-radius: 6px;
+  background: #eee;
+  border: 1px solid #ccc;
   position: relative;
+  transition: background 0.2s;
 }
-.tech-btn:hover:not(:disabled) { background:#ddd; }
-.tech-btn:disabled { background:#ccc; cursor:not-allowed; }
 
-/* Tooltip */
+.tech-btn:hover:not(:disabled) { background: #ddd; }
+.tech-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+/* Tooltip inside tech button */
 .tech-btn .tooltip {
   visibility: hidden;
   opacity: 0;
@@ -91,13 +170,17 @@ progress { width:100%; height:15px; }
   transition: opacity 0.2s;
   z-index: 10;
 }
+
 .tech-btn:hover .tooltip {
   visibility: visible;
   opacity: 1;
 }
+
+/* ---------------- Research Subtabs ---------------- */
 .research-subtab { display: none; }
 .research-subtab.active { display: block; }
 
+/* ---------------- Tooltips ---------------- */
 .tooltip {
   position: relative;
   display: inline-block;
@@ -125,72 +208,48 @@ progress { width:100%; height:15px; }
   visibility: visible;
   opacity: 1;
 }
-/* Push everything slightly lower from the top */
-body {
-  margin: 0;                  /* remove default body margin */
-  padding-top: 1%;          /* space from top */
-  font-family: Arial, sans-serif;
-}
 
-
-
-/* Second bar (tab bar) */
-.tab-bar {
-  width: 100%;
-  background-color: #303438;  /* blue bar */
+/* ---------------- Number-only resources ---------------- */
+#numberResources {
   display: flex;
-  justify-content: flex-start; /* align buttons to the left */
-  gap: 0px 0px;
-  padding: 0.5% 0.5%;
-  box-sizing: border-box;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 5px;
 }
 
-/* Buttons inside the bar */
-.tab-bar button {
-  background: none;            /* no background */
-  border: none;                /* no border */
-  color: white;                /* text color */
-  font-size: 14px;             /* smaller text */
-  padding: 4px 8px;            /* button padding */
-  cursor: pointer;
-  outline: none;
-}
-
-.tab-bar button:hover {
-  text-decoration: underline;  /* optional hover effect */
-}
-
-.tab-bar button:focus {
-  outline: none;
-}
-.resource {
-  position: relative;
+#numberResources .resource {
   display: inline-block;
-  margin-right: 20px;
+  margin: 0;
 }
 
-/* Hide info by default */
-.resource .info {
-  visibility: hidden;
-  width: 180px;
-  background-color: black;
-  color: #fff;
-  text-align: center;
-  padding: 5px 8px;
-  border-radius: 6px;
+#numberResources .resource .label span {
+  font-weight: bold;
+}
+
+/* Hover info for number-only resources */
+#numberResources .resource .label .hover-info {
+  cursor: help;
+  position: relative;
+}
+
+#numberResources .resource .label .hover-info::after {
+  content: attr(data-info);
   position: absolute;
-  z-index: 1;
   bottom: 125%;
   left: 50%;
   transform: translateX(-50%);
+  background: rgba(0,0,0,0.8);
+  color: #fff;
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
   opacity: 0;
-  transition: opacity 0.3s;
   pointer-events: none;
+  transition: opacity 0.2s ease-in-out;
+  z-index: 10;
 }
 
-/* Show info only when hovering the progress bar */
-.resource progress:hover + .info {
-  visibility: visible;
+#numberResources .resource .label .hover-info:hover::after {
   opacity: 1;
 }
-

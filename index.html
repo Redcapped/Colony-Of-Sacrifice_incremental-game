@@ -5,28 +5,73 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+
+  <!-- Resource Bar -->
   <div id="resourceBar">
+    <!-- Ants -->
     <div class="resource" id="antResource">
       <div class="label">🐜 Ants: <span id="antCount">0/0</span></div>
     </div>
+
+    <!-- Water -->
     <div class="resource">
-      <div class="label">💧 Waterdrops: <span id="waterDrops">0</span></div>
+      <div class="label">💧 Water: <span id="water">0</span></div>
       <progress id="waterBar" value="0" max="25"></progress>
       <div class="info" id="waterInfo"></div>
     </div>
+
+    <!-- Wood -->
     <div class="resource" id="woodResource" style="display:none;">
-      <div class="label">🌲 Woodspliters: <span id="woodSpliters">0</span></div>
+      <div class="label">🌲 Wood: <span id="wood">0</span></div>
       <progress id="woodBar" value="0" max="25"></progress>
       <div class="info" id="woodInfo"></div>
     </div>
+
+    <!-- Sugar -->
     <div class="resource" id="sugarResource" style="display:none;">
-      <div class="label">🍬 Sugarcrystals: <span id="sugarCrystals">0</span></div>
+      <div class="label">🍬 Sugar: <span id="sugar">0</span></div>
       <progress id="sugarBar" value="0" max="25"></progress>
       <div class="info" id="sugarInfo"></div>
     </div>
+
+    <!-- Stone (with bar, hover info) -->
+    <div class="resource" id="stoneResource">
+      <div class="label">🪨 Stone: <span id="stone">0</span></div>
+      <progress id="stoneBar" value="0" max="25" class="hover-info" data-info="0 gain / 0 loss"></progress>
+      <div class="info" id="stoneInfo"></div>
+    </div>
+
+    <!-- Number-only resources -->
+    <div id="numberResources">
+      <!-- Lumber -->
+      <div class="resource" id="lumberResource">
+        <div class="label">🪓 Lumber: 
+          <span id="lumber" class="hover-info" data-info="0 gain / 0 loss">0/0</span>
+        </div>
+        <div class="info" id="lumberInfo"></div>
+      </div>
+
+      <!-- Science -->
+      <div class="resource" id="scienceResource">
+        <div class="label">🔬 Science: 
+          <span id="science" class="hover-info" data-info="0 gain / 0 loss">0/0</span>
+        </div>
+        <div class="info" id="scienceInfo"></div>
+      </div>
+
+      <!-- Blood -->
+      <div class="resource" id="bloodResource">
+        <div class="label">🩸 Blood: 
+          <span id="blood" class="hover-info" data-info="0 gain / 0 loss">0/0</span>
+        </div>
+        <div class="info" id="bloodInfo"></div>
+      </div>
+    </div>
   </div>
 
+  <!-- Game Content -->
   <div class="gameContent">
+    <!-- Tab Bar -->
     <div class="tab-bar">
       <button id="tabMainBtn">Main</button>
       <button id="tabResearchBtn">Research</button>
@@ -38,11 +83,24 @@
     <div id="main" class="tab active">
       <h1>the Sacrifice colony</h1>
 
-      <button id="collectWaterBtn" class="main-btn tooltip">Collect Waterdrop <span class="tooltiptext"> collect 1 water </span></button>
-      <button id="collectSugarBtn" class="main-btn tooltip" style="display:none;">Collect Sugarcrystal <span class="tooltiptext"> cost 5 water to collect 1 sugarcrystal </span></button>
-      <button id="collectWoodBtn" class="main-btn tooltip" style="display:none;">Collect Woodspliter <span class="tooltiptext"> cost 2 water to collect 1 woodsplinter </span></button>
+      <button id="collectWaterBtn" class="main-btn tooltip">
+        Collect Water 
+        <span class="tooltiptext">Collect 1 water</span>
+      </button>
+      <button id="collectSugarBtn" class="main-btn tooltip" style="display:none;">
+        Collect Sugar 
+        <span class="tooltiptext">Cost 5 water to collect 1 sugar crystal</span>
+      </button>
+      <button id="collectWoodBtn" class="main-btn tooltip" style="display:none;">
+        Collect Wood 
+        <span class="tooltiptext">Cost 2 water to collect 1 wood splinter</span>
+      </button>
       <br>
-      <button id="recruitAntBtn" class="main-btn tooltip" style="display:none;">Recruit Ant <span class="tooltiptext"> cost 5 Sugarcrystals </span></button><br>
+      <button id="recruitAntBtn" class="main-btn tooltip" style="display:none;">
+        Recruit Ant 
+        <span class="tooltiptext">Cost 5 sugar crystals</span>
+      </button>
+      <br>
 
       <hr class="separator">
 
@@ -70,27 +128,49 @@
     </div>
 
     <!-- Ants Tab -->
-    <div id="ants" class="tab">
+<div id="ants" class="tab">
       <h1>Assign Ants to Jobs</h1>
+
+      <!-- Breeding rate -->
       <div id="breedingRate" style="display:inline-block;">
-         New ants per second: <span id="breedingRateValue">0</span>
+        New ants per second: <span id="breedingRateValue">0</span>
+      </div>
+      <br>
+
+      <!-- Free ants -->
+      <div id="freeAnts">
+        Free ants: <span id="freeAntsValue">0</span>
+      </div>
+
+      <!-- Breeding progress bar (hidden initially) -->
+      <div id="breedingContainer" style="display:none; margin-top:5px;">
+        <label for="breedingBar">Breeding Progress:</label>
+        <progress id="breedingBar" value="0" max="1" style="width:300px;"></progress>
+        <span id="breedingPercent">0%</span>
       </div>
       <div>
-        Water: 
+        Water Ant: 
         <button id="btnAntWaterMinus">-</button>
         <span id="antsWater">0</span>
         <button id="btnAntWaterPlus">+</button><br>
 
-        Sugar: 
+        Sugar Ant: 
         <button id="btnAntSugarMinus">-</button>
         <span id="antsSugar">0</span>
         <button id="btnAntSugarPlus">+</button><br>
 
         <span id="woodAntLine" style="display:none;">
-          Wood:
+          Wood Ant:
           <button id="btnAntWoodMinus">-</button>
           <span id="antsWood">0</span>
           <button id="btnAntWoodPlus">+</button>
+        </span><br>
+
+        <span id="lumberAntLine" style="display:none;">
+          Lumber Ant:
+          <button id="btnAntLumberMinus">-</button>
+          <span id="antsLumber">0</span>
+          <button id="btnAntLumberPlus">+</button>
         </span><br>
       </div>
     </div>
@@ -100,7 +180,8 @@
       <h1>Settings</h1>
       <button id="resetGameBtn" class="main-btn">Reset Game 🔄</button>
     </div>
-  </div>
+
+  </div> <!-- end gameContent -->
 
   <script type="module" src="js/game.js"></script>
 </body>

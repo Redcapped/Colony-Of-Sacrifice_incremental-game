@@ -14,18 +14,35 @@ export function openResearchTab(tab){
 }
 // ----------------- Unlocks & UI -----------------
 export function update_unlocks() {
-  if (gameData.resources.wood.unlocked) {
-    const woodBtn = document.getElementById("collectWoodBtn");
-    const woodRes = document.getElementById("woodResource");
-    if (woodBtn) woodBtn.style.display = "inline-block";
-    if (woodRes) woodRes.style.display = "flex";
-    const woodAntLine = document.getElementById("woodAntLine");
-  if (woodAntLine) {woodAntLine.style.display = "inline-block"; // show when research done
-  }  // hide otherwise
+  const resourceElements = {
+    wood:      { btn: "collectWoodBtn", res: "woodResource", antLine: "woodAntLine" },
+    lumber:    { btn: null, res: "lumberResource", antLine: "lumberAntLine" },
+    stone:     { btn: null, res: "stoneResource", antLine: null },
+    science:   { btn: null, res: "scienceResource", antLine: null },
+    blood:     { btn: null, res: "bloodResource", antLine: null },
+    sugar:     { btn: "collectSugarBtn", res: "sugarResource", antLine: "sugarAntLine" }
+  };
+
+  // ---------------- Resources ----------------
+  for (let key in resourceElements) {
+    const resData = resourceElements[key];
+    const resUnlocked = gameData.resources[key]?.unlocked;
+
+    const resEl = document.getElementById(resData.res);
+    if (resEl) resEl.style.display = resUnlocked ? "flex" : "none";
+
+    if (resData.btn) {
+      const btnEl = document.getElementById(resData.btn);
+      if (btnEl) btnEl.style.display = resUnlocked ? "inline-block" : "none";
+    }
+
+    if (resData.antLine) {
+      const antLineEl = document.getElementById(resData.antLine);
+      if (antLineEl) antLineEl.style.display = resUnlocked ? "inline-block" : "none";
+    }
   }
 
-  
-
+  // ---------------- Buildings ----------------
   if (gameData.buildings.anthutUnlocked) {
     const anthutBtn = document.getElementById("buildAnthutBtn");
     if (anthutBtn) {
@@ -33,22 +50,46 @@ export function update_unlocks() {
       anthutBtn.style.display = "inline-block";
     }
   }
-  if (gameData.resources.sugar.unlocked){
-    const collectSugarBtn = document.getElementById("collectSugarBtn");
-    if (collectSugarBtn) collectSugarBtn.style.display = "inline-block";
 
-  }
-  if (gameData.ants.recruitAntUnlocked) {
-    const recruitBtn = document.getElementById("recruitAntBtn");
-    if (recruitBtn) recruitBtn.style.display = "inline-block";
-  }
-    if (gameData.ants.breedingUnlocked) {
-    const breedingRate = document.getElementById("breedingRate");
+  // ---------------- Ants ----------------
+  const recruitBtn = document.getElementById("recruitAntBtn");
+  if (recruitBtn) recruitBtn.style.display = gameData.ants.recruitAntUnlocked ? "inline-block" : "none";
+
+  const breedingRate = document.getElementById("breedingRate");
+  const breedingProgressContainer = document.getElementById("breedingProgressContainer");
+  const nextAntProgress = document.getElementById("nextAntProgress");
+  const nextAntPercent = document.getElementById("nextAntPercent");
+
+  if (gameData.ants.breedingUnlocked) {
     if (breedingRate) breedingRate.style.display = "inline-block";
+    if (breedingProgressContainer) breedingProgressContainer.style.display = "block";
+
+    // Just read the partial value, no increment
+    const partial = gameData.ants.partial || 0;
+
+    if (nextAntProgress) nextAntProgress.style.width = `${partial * 100}%`;
+    if (nextAntPercent) nextAntPercent.innerText = `${Math.floor(partial * 100)}%`;
+  } else {
+    if (breedingRate) breedingRate.style.display = "none";
+    if (breedingProgressContainer) breedingProgressContainer.style.display = "none";
   }
 
+  // ---------------- Total & Free Ants ----------------
+  const antCount = document.getElementById("antCount");
+  if (antCount) {
+    const totalAssigned = Object.values(gameData.ants.assignedAnts).reduce((a, b) => a + b, 0);
+    antCount.innerText = `${totalAssigned}/${gameData.ants.maxAnts}`;
+  }
+
+  const freeAnts = document.getElementById("freeAntsValue");
+  if (freeAnts) freeAnts.innerText = gameData.ants.assignedAnts.free;
+
+  // ---------------- Resource UI ----------------
   update_resource();
 }
+
+
+
 
 // ----------------- Game Initialization -----------------
 export function initGame() {
@@ -78,6 +119,8 @@ export function initGame() {
   document.getElementById('btnAntSugarPlus')?.addEventListener('click', () => adjustAnt('sugar', 1));
   document.getElementById('btnAntWoodMinus')?.addEventListener('click', () => adjustAnt('wood', -1));
   document.getElementById('btnAntWoodPlus')?.addEventListener('click', () => adjustAnt('wood', 1));
+  document.getElementById('btnAntLumberMinus')?.addEventListener('click', () => adjustAnt('lumber', -1));
+  document.getElementById('btnAntLumberPlus')?.addEventListener('click', () => adjustAnt('lumber', 1));
 
   // Tabs
   document.getElementById('tabMainBtn')?.addEventListener('click', () => openTab('main'));
@@ -128,3 +171,7 @@ export function resetGame() {
   window.location.reload();
 }
 
+window.addEventListener('load', () => {
+  loadGame();
+
+});

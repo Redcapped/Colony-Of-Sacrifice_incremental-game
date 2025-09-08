@@ -5,17 +5,20 @@ export function getDefaultGameData() {
   return {
     gameUpdateRate:5,
     resources:{
-      water: { amount: 0, max: 25, prodFactor: 1, assigned: 'water',info:{gain:0,loss:0}},
+      water: { amount: 0, max: 25, prodFactor: 1, assigned: 'water',cost: {},info:{gain:0,loss:0}},
       wood:  { amount: 0, max: 25, prodFactor: 1, assigned: 'wood', cost: { water: 2 }, unlocked:false,info:{gain:0,loss:0}},
-      sugar: { amount: 0, max: 25, prodFactor: 1, assigned: 'sugar', cost: { water: 5 },unlocked:false,info:{gain:0,loss:0}}},
+      sugar: { amount: 0, max: 25, prodFactor: 1, assigned: 'sugar', cost: { water: 5 },unlocked:false,info:{gain:0,loss:0}},
+      lumber:{ amount: 0, max: 25, prodFactor: 0.1, assigned:'lumber',cost:{wood:100},unlocked:false,info:{gain:0,loss:0}},
+      stone: { amount: 0, max: 25, prodFactor: 1, assigned:'stone',cost: {},unlocked:false,info:{gain:0,loss:0}},
+      science:{ amount: 0, max: 100, prodFactor: 0.1, assigned:'science',cost: {sugar:3},unlocked:false,info:{gain:0,loss:0}},
+      blood:{ amount: 0, max: 100, prodFactor: 0.01, assigned:'blood',cost: {},unlocked:false,info:{gain:0,loss:0}}},
     ants:{
       recruitAntUnlocked:false,maxAnts: 10,
-      assignedAnts: { free: 0, water: 0, wood: 0, sugar: 0 },
+      assignedAnts: { free: 0, water: 0, wood: 0, sugar: 0 ,lumber:0,stone:0,science:0},
       antSugarConsumtion:10,
       breedingUnlocked:false , partialAnts: 0, antsBreedingSpeed:30, antsBreedingCost:1.5},
     buildings:{
-      anthutUnlocked: false,anthutLevel: 0,anthutBaseCost: 10,anthutCostMultiplier: 1.25,anthutResidens:2,
-    },
+      anthutUnlocked: false,anthutLevel: 0,anthutBaseCost: 10,anthutCostMultiplier: 1.25,anthutResidens:2,},
     research: {}
   };
 }
@@ -55,10 +58,9 @@ export function collectResource(key, amount) {
   res.amount += producible;
 
   // Update UI dynamically
-  const spanId = key === 'water' ? 'waterDrops' :
-                 key === 'wood' ? 'woodSpliters' :
-                 key === 'sugar' ? 'sugarCrystals' : key + 'Amount';
-  const barId = key + 'Bar';
+
+  const spanId = key; // e.g., waterDrops, woodSpliters, sugarCrystals
+  const barId = key.replace(/s$/, "") + "Bar"; 
 
   const span = document.getElementById(spanId);
   const bar = document.getElementById(barId);
@@ -86,90 +88,102 @@ export function buyAnthut(){
 }
 
 
-// ----------------- Update Resources -----------------
-export function update_resource() {
-  // ---------------- Ants ----------------
+export function update_resourcesUI() {
+  for (let key in gameData.resources) {
+    const res = gameData.resources[key];
+    const span = document.getElementById(key);
+    const bar = document.getElementById(key + "Bar");
+    const info = document.getElementById(key + "Info");
+
+    if (span) span.innerText = `${Math.floor(res.amount)}/${res.max}`;
+    if (bar) {
+      bar.value = res.amount;
+      bar.max = res.max;
+    }
+
+    if (info && res.info) {
+      const gain = res.info.gain * gameData.gameUpdateRate;
+      const loss = (res.info.loss || 0) * gameData.gameUpdateRate;
+      const net  = gain + loss;
+
+      let timeText = "∞";
+      let color = "gray";
+
+      if (res.amount >= res.max) {
+        timeText = "full";
+        color = "gray";
+      } else if (net > 0) {
+        const time = (res.max - res.amount) / net;
+        timeText = `Fill in ${Math.ceil(time)}s`;
+        color = "green";
+      } else if (net < 0) {
+        const time = res.amount / Math.abs(net);
+        timeText = `Empty in ${Math.ceil(time)}s`;
+        color = "red";
+      }
+
+      info.innerText = `+${gain.toFixed(2)}/s ${loss.toFixed(2)}/s = ${net.toFixed(2)}/s | ${timeText}`;
+      info.style.color = color;
+    }
+  }
+}
+export function update_antsUI() {
+  // Total assigned ants
   const totalAnts = Object.values(gameData.ants.assignedAnts).reduce((a, b) => a + b, 0);
   const antCount = document.getElementById("antCount");
-  if (antCount) antCount.innerText = totalAnts + "/" + gameData.ants.maxAnts;
+  if (antCount) antCount.innerText = `${totalAnts}/${gameData.ants.maxAnts}`;
 
-  // ---------------- Resources ----------------
-  const resMap = {
-    water: ["waterDrops", "waterBar"],
-    wood: ["woodSpliters", "woodBar"],
-    sugar: ["sugarCrystals", "sugarBar"]
-  };
+  // Assigned ant types
+  const antTypes = ["water", "wood", "sugar", "lumber", "stone", "science"];
+  antTypes.forEach(type => {
+    const span = document.getElementById(`ants${capitalize(type)}`);
+    if (span) span.innerText = gameData.ants.assignedAnts[type];
+  });
+  const container = document.getElementById("freeAntsValue");
+  if (container) container.innerText = `Free ants ${ gameData.ants.assignedAnts['free']}`
+  // Breeding info
+  // Update breeding bar
+  update_breedingBar();
 
-  for (let key in resMap) {
-    const [spanId, barId] = resMap[key];
-    const span = document.getElementById(spanId);
-    const bar = document.getElementById(barId);
-    const res = gameData.resources[key];
-
-    if (span) span.innerText = Math.floor(res.amount);
-    if (bar) bar.value = res.amount;
-    if (bar) bar.max = res.max
-  }
-
-  // ---------------- Assigned Ants ----------------
-  const antsWater = document.getElementById("antsWater");
-  if (antsWater) antsWater.innerText = gameData.ants.assignedAnts.water;
-  const antsWood = document.getElementById("antsWood");
-  if (antsWood) antsWood.innerText = gameData.ants.assignedAnts.wood;
-  const antsSugar = document.getElementById("antsSugar");
-  if (antsSugar) antsSugar.innerText = gameData.ants.assignedAnts.sugar;
-
-  // ---------------- Resource Info ----------------
-  const waterGain = gameData.resources.water.info.gain * gameData.gameUpdateRate;
-  const waterLoss = gameData.resources.water.info.loss * gameData.gameUpdateRate;
-  const waterNet = waterGain + waterLoss;
-  const waterTime = waterNet > 0 ? (gameData.resources.water.max - gameData.resources.water.amount) / waterNet : Infinity;
-  const waterInfo = document.getElementById("waterInfo");
-  if (waterInfo) waterInfo.innerText = `+${waterGain.toFixed(2)}/s ${waterLoss.toFixed(2)}/s = ${waterNet.toFixed(2)}/s | Fill in ${Math.ceil(waterTime)}s`;
-
-  const woodGain = gameData.resources.wood.info.gain * gameData.gameUpdateRate;
-  const woodTime = woodGain > 0 ? (gameData.resources.wood.max - gameData.resources.wood.amount) / woodGain : Infinity;
-  const woodInfo = document.getElementById("woodInfo");
-  if (woodInfo) woodInfo.innerText = `+${woodGain.toFixed(2)}/s -0/s = ${woodGain.toFixed(2)}/s | Fill in ${Math.ceil(woodTime)}s`;
-
-  const sugarGain = gameData.resources.sugar.info.gain * gameData.gameUpdateRate;
-  const sugarLoss = gameData.resources.sugar.info.loss * gameData.gameUpdateRate;
-  const sugarNet = sugarGain - sugarLoss;
-  const sugarTime = sugarNet > 0 ? (gameData.resources.sugar.max - gameData.resources.sugar.amount) / sugarNet : Infinity;
-  const sugarInfo = document.getElementById("sugarInfo");
-  if (sugarInfo) sugarInfo.innerText = `+${sugarGain.toFixed(2)}/s -${sugarLoss.toFixed(2)}/s = ${sugarNet.toFixed(2)}/s | Fill in ${Math.ceil(sugarTime)}s`;
-  // ---------------- Breeding Info ----------------
-  const breedingContainer = document.getElementById("breedingRate");
-  const breedingValue = document.getElementById("breedingRateValue");
-  
-  if (gameData.ants.breedingUnlocked) {
-    if (breedingContainer) breedingContainer.style.display = "inline-block";
-    
-    if (breedingValue) {
-      
-      const totalFree = gameData.ants.assignedAnts.free;
-      // breeding rate = pairs of free ants * (1 ant per 10s) * speed
-      if (gameData.ants.maxAnts > getTotalAnts()){
-      const ratePerSecond = Math.floor(totalFree / 2) / gameData.ants.antsBreedingSpeed/gameData.gameUpdateRate;
-      breedingValue.innerText = ratePerSecond.toFixed(2);
-      }
-      else {breedingValue.innerText =0;}
-    }
-  } 
-
-  // ---------------- Unlocks ----------------
+}
+export function update_unlocksUI() {
   if (gameData.resources.water.amount > 10 || gameData.resources.sugar.unlocked) {
     gameData.resources.sugar.unlocked = true;
     const sugarBtn = document.getElementById("collectSugarBtn");
     const sugarRes = document.getElementById("sugarResource");
     if (sugarBtn) sugarBtn.style.display = "inline-block";
     if (sugarRes) sugarRes.style.display = "flex";
-    
+  }
+}
+export function update_breedingBar() {
+  const container = document.getElementById("breedingContainer");
+  const bar = document.getElementById("breedingBar");
+  const percent = document.getElementById("breedingPercent");
+
+  if (!gameData.ants.breedingUnlocked) {
+    if (container) container.style.display = "none";
+    return;
   }
 
-  // ---------------- Save Game ----------------
+  if (container) container.style.display = "block";
+  if (bar) bar.value = gameData.ants.partialAnts || 0;
+  if (percent) percent.innerText = `${Math.floor((gameData.ants.partialAnts || 0) * 100)}%`;
+}
+
+export function update_resource() {
+  update_resourcesUI();
+  update_antsUI();
+  update_unlocksUI();
   saveGame();
 }
+
+
+
+// helper
+function capitalize(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 
 // ----------------- Assign Ants -----------------
 export function adjustAnt(resource, delta){
@@ -262,7 +276,7 @@ export function consumeSugar(){
   if (gameData.ants.maxAnts > totalAnts && gameData.ants.breedingUnlocked){
     sugarNeed += gameData.ants.assignedAnts.free * (gameData.ants.antsBreedingCost-1) * timeFactor
   }
-  gameData.resources.sugar.info.loss = sugarNeed
+  gameData.resources.sugar.info.loss = -sugarNeed
   // Normal case: enough sugar
   if (gameData.resources.sugar.amount >= sugarNeed) {
     gameData.resources.sugar.amount -= sugarNeed;
