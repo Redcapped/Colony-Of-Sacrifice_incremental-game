@@ -1,17 +1,28 @@
 // techTree.js
-import { gameData, update_resource } from './coregame.js';
-import { update_unlocks } from './game.js';
+import { gameData, update_resource, update_resourcesUI } from './coregame.js';
+import { update_unlocks,buildResourceUI,buildAntUI } from './game.js';
 // ----------------- Tech Tree -----------------
 export const techTree = [
+  {
+    id:'sugar',
+    name:'start searching for sugar',
+    desc:'unlock the abilty to search for sugar',
+    cost:{water:20},
+    prereq:[],
+    effect:()=>{
+      gameData.resources.sugar.unlocked = true;
+      update_unlocks();
+      update_resourcesUI(); }
+  },
   {
     id:'waterhole',
     name:'Basic Understanding waterstorage',
     desc:'Increase the water capacity by 25.',
     cost:{water:20},
-    prereq:[],
+    prereq:['sugar'],
     effect:()=>{
       gameData.resources.water.max += 25;
-      document.getElementById("waterBar").max = gameData.resources.water.max; }
+      update_resourcesUI(); }
   },
   {
     id:'waterhole 2',
@@ -21,7 +32,7 @@ export const techTree = [
     prereq:['waterhole'],
     effect:()=>{
       gameData.resources.water.max += 50;
-      document.getElementById("waterBar").max = gameData.resources.water.max; }
+      update_resourcesUI(); }
   },
   {
     id:'waterhole 3',
@@ -31,7 +42,7 @@ export const techTree = [
     prereq:['waterhole 2'],
     effect:()=>{
       gameData.resources.water.max += 100;
-      document.getElementById("waterBar").max = gameData.resources.water.max; }
+      update_resourcesUI(); }
   },
   {
     id:'waterhole 4',
@@ -41,7 +52,7 @@ export const techTree = [
     prereq:['waterhole 3'],
     effect:()=>{
       gameData.resources.water.max += 100;
-      document.getElementById("waterBar").max = gameData.resources.water.max; }
+      update_resourcesUI(); }
   },
     {
     id:'woodUnlock',
@@ -51,24 +62,26 @@ export const techTree = [
     prereq:['waterhole','pheromones'],
     effect:()=>{
       gameData.resources.wood.unlocked = true;
-      update_unlocks()}
+      update_unlocks();
+      update_resourcesUI();
+      }
   },
     {
     id:'waterProd 1',
     name:'What if we make bowls of wood',
-    desc:'double the speed the ants collect water',
+    desc:'inceases the speed the ants collect water by 20%',
     cost:{water:15,wood:25},
     prereq:['woodUnlock'],
     effect:()=>{
-      gameData.resources.water.prodFactor *= 2;
-      update_unlocks()}
+      gameData.resources.water.prodFactor *= 1.2;
+      update_resourcesUI()}
   },
   {
     id:'pheromones',
     name:'🐜 Basic Understanding of Pheromones',
     desc:'Unlocks the ability to recruit ants.',
     cost:{sugar:5},
-    prereq:[],
+    prereq:['sugar'],
     effect:()=>{ gameData.ants.recruitAntUnlocked=true; document.getElementById("recruitAntBtn").style.display="inline-block"; }
   },
   {
@@ -77,7 +90,9 @@ export const techTree = [
     desc:'Unlocks the ability let the ants breed. Only ants with free time breed. the breeding ants cost 1.25 times as much sugar and every pair gains a new ant every 10 seconds',
     cost:{sugar:20},
     prereq:['anthutTech'],
-    effect:()=>{ gameData.ants.breedingUnlocked = true;update_unlocks(); }
+    effect:()=>{ gameData.ants.breedingUnlocked = true;
+      buildAntUI();
+      update_resourcesUI(); }
   },
   
   {
@@ -86,7 +101,10 @@ export const techTree = [
     desc:'Allows building Anthill to increase max ants.',
     cost:{sugar:20, wood:10},
     prereq:['pheromones','woodUnlock'],
-    effect:()=>{ gameData.buildings.anthutUnlocked = true,update_unlocks(); }
+    effect:()=>{ gameData.buildings.anthut.unlocked = true;
+      update_unlocks();
+      update_resourcesUI();
+     }
   },
   {
   id: 'lumberjackUnlock',
@@ -96,10 +114,9 @@ export const techTree = [
   prereq: ['woodUnlock'], // You can change prerequisites if needed
   effect: () => {
     gameData.resources.lumber.unlocked = true;
-    update_unlocks();
-  }
+    buildResourceUI()
+    update_unlocks();}
   },
-  
   {
     id:'cheaperSugar',
     name:'building a bridge',
@@ -111,8 +128,8 @@ export const techTree = [
   {
     id:'scienceAnt',
     name:'its science time',
-    desc:'decreases the cost of sugar to 4 water',
-    cost:{lumber:5},
+    desc:'unlock scolar ant uses 4 * the sugar but produces knowledge',
+    cost:{water:120},
     prereq:['waterProd 1','lumberjackUnlock'],
     effect:()=>{ gameData.resources.science.unlocked = true,update_unlocks(); }
   },

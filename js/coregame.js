@@ -18,14 +18,22 @@ export function getDefaultGameData() {
       antSugarConsumtion:10,
       breedingUnlocked:false , partialAnts: 0, antsBreedingSpeed:30, antsBreedingCost:1.5},
     buildings:{
-      anthutUnlocked: false,anthutLevel: 0,anthutBaseCost: 10,anthutCostMultiplier: 1.25,anthutResidens:2,},
+      anthut:{unlocked: false, level: 0 , costMultiplier: 1.25 ,residens:2, baseCost:{'wood':10}}
+      },
     research: {}
   };
 }
 export let gameData = getDefaultGameData()
 window.gameData = gameData;
 
+export function updateGameTick(){
+  resetResourceGains();
+  consumeSugarAnts();
+  breedAnts();
+  autoCollect();
+  update_resource();
 
+}
 // ----------------- Main Game Functions -----------------
 export function collectResource(key, amount) {
   const res = gameData.resources[key];
@@ -77,14 +85,56 @@ export function recruitAnt(){
   if(gameData.resources.sugar.amount>=5){ gameData.resources.sugar.amount-=5; gameData.ants.assignedAnts.free++; update_resource(); }
 }
 
-export function buyAnthut(){
-  let cost = Math.floor(gameData.buildings.anthutBaseCost * Math.pow(gameData.buildings.anthutCostMultiplier, gameData.buildings.anthutLevel));
-  if(gameData.resources.wood.amount<cost) return alert("Not enough wood!");
-  gameData.resources.wood.amount -= cost;
-  gameData.buildings.anthutLevel++;
-  gameData.ants.maxAnts += 2;
-  document.getElementById("buildAnthutBtn").innerText = `Build Anthut (+${gameData.buildings.anthutResidens} max ants, Cost: ${Math.floor(gameData.buildings.anthutBaseCost * Math.pow(gameData.buildings.anthutCostMultiplier, gameData.buildings.anthutLevel))} woodspliters)`;
+export function buyAnthut() {
+  const cost = {};
+
+  // calculate current cost for each resource
+  for (const resName in gameData.buildings.anthut.baseCost) {
+    const base = gameData.buildings.anthut.baseCost[resName];
+    cost[resName] = Math.floor(base * Math.pow(gameData.buildings.anthut.costMultiplier, gameData.buildings.anthut.level));
+  }
+
+  // check if enough resources
+  for (const resName in cost) {
+    if (gameData.resources[resName].amount < cost[resName]) {
+      return alert(`Not enough ${resName}!`);
+    }
+  }
+
+  // subtract resources
+  for (const resName in cost) {
+    gameData.resources[resName].amount -= cost[resName];
+  }
+
+  // increase building level and max ants
+  gameData.buildings.anthut.level++;
+  gameData.ants.maxAnts += gameData.buildings.anthut.residens;
+
+  // update button text
+  const anthutBtn = document.getElementById("buildAnthutBtn");
+  if (anthutBtn) {
+    const costStrings = [];
+    for (const resName in gameData.buildings.anthut.baseCost) {
+      const base = gameData.buildings.anthut.baseCost[resName];
+      const c = Math.floor(base * Math.pow(gameData.buildings.anthut.costMultiplier, gameData.buildings.anthut.level));
+      costStrings.push(`${c} ${resName}`);
+    }
+    anthutBtn.innerText = `Build Anthut (+${gameData.buildings.anthut.residens} max ants, Cost: ${costStrings.join(', ')})`;
+  }
+
   update_resource();
+}
+
+
+export function resetResourceGains() {
+  for (let resName in gameData.resources) {
+    const res = gameData.resources[resName];
+    if (!res.info) continue;
+
+    // Reset gain and loss for this tick
+    res.info.gain = 0;
+    res.info.loss = 0;
+  }
 }
 
 
@@ -110,7 +160,12 @@ export function update_resourcesUI() {
       if (res.amount >= res.max) {
         timeText = "full";
         color = "gray";
-      } else if (netgain > 0) {
+      } else if (res.amount <= 0.5){
+
+        color = "gray";
+        netgain = loss
+      }
+      else if (netgain > 0) {
         const time = (res.max - res.amount) / netgain;
         timeText = `Fill in ${Math.ceil(time)}s`;
         color = "green";
@@ -153,15 +208,6 @@ export function update_antsUI() {
   update_breedingBar();
 
 }
-export function update_unlocksUI() {
-  if (gameData.resources.water.amount > 10 || gameData.resources.sugar.unlocked) {
-    gameData.resources.sugar.unlocked = true;
-    const sugarBtn = document.getElementById("collectSugarBtn");
-    const sugarRes = document.getElementById("sugarResource");
-    if (sugarBtn) sugarBtn.style.display = "inline-block";
-    if (sugarRes) sugarRes.style.display = "flex";
-  }
-}
 export function update_breedingBar() {
   const container = document.getElementById("breedingContainer");
   const bar = document.getElementById("breedingBar");
@@ -180,13 +226,9 @@ export function update_breedingBar() {
 export function update_resource() {
   update_resourcesUI();
   update_antsUI();
-  update_unlocksUI();
   saveGame();
 }
 
-
-
-// helper
 function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
@@ -197,7 +239,6 @@ export function adjustAnt(resource, delta){
   if(delta>0 && gameData.ants.assignedAnts.free>0){ gameData.ants.assignedAnts.free--; gameData.ants.assignedAnts[resource]++; }
   else if(delta<0 && gameData.ants.assignedAnts[resource]>0){ gameData.ants.assignedAnts.free++; gameData.ants.assignedAnts[resource]--; }
   update_resource();
-  saveGame();
 }
 
 // ----------------- Auto Collect -----------------
@@ -259,21 +300,14 @@ export function autoCollect() {
     
     res.amount = Math.min(res.max, Math.max(0, res.amount + netChange[key]));
   }
-
-  // Step 4: Update UI
-  update_resource();
 }
 
 function getTotalAnts(){
   return Object.values(gameData.ants.assignedAnts).reduce((a, b) => a + b, 0)
 }
 
-
-
-
-
 // ----------------- Consume Sugar -----------------
-export function consumeSugar(){
+export function consumeSugarAnts(){
   let timeFactor = 0.1/gameData.gameUpdateRate
   // Calculate total ants
   const totalAnts = getTotalAnts();
@@ -281,13 +315,12 @@ export function consumeSugar(){
   let sugarNeed = totalAnts*timeFactor
   // minus the breedingcost if there are ant breeding
   if (gameData.ants.maxAnts > totalAnts && gameData.ants.breedingUnlocked){
-    sugarNeed += gameData.ants.assignedAnts.free * (gameData.ants.antsBreedingCost-1) * timeFactor
+    sugarNeed += Math.floor(gameData.ants.assignedAnts.free/2) * (gameData.ants.antsBreedingCost-1) * timeFactor
   }
   gameData.resources.sugar.info.loss = -sugarNeed
   // Normal case: enough sugar
   if (gameData.resources.sugar.amount >= sugarNeed) {
     gameData.resources.sugar.amount -= sugarNeed;
-    update_resource();
     return;
   }
 
@@ -308,7 +341,6 @@ export function consumeSugar(){
     }
   }
 
-  update_resource();
 }
 
 export function breedAnts() {
@@ -338,45 +370,8 @@ export function breedAnts() {
       }
     }
   }
-  
-
-  update_resource();
 }
 
-
-// ----------------- Save / Load -----------------
 export function saveGame() {
   localStorage.setItem('Colony_of_sacrifce', JSON.stringify(gameData));
 }
-
-export function loadGame() {
-  const defaultData = getDefaultGameData();
-  const saved = localStorage.getItem('Colony_of_sacrifce');
-  if (saved) {
-    const loadedData = JSON.parse(saved);
-    // Merge saved data with defaults (future-proof)
-    for (let key in defaultData) {
-      gameData[key] = loadedData[key] !== undefined ? loadedData[key] : defaultData[key];
-    }
-  }
-  update_resource();
-  initTechTree(); // redraw tech tree correctly
-}
-
-export function resetGame() {
-
-  if (!confirm("Are you sure you want to reset your game?")) return;
-
-  gameData = getDefaultGameData();
-  saveGame();
-  update_resource();
-  update_unlocks();
-  initTechTree();
-
-
-  window.location.reload();
-}
-
-
-
-

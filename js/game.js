@@ -1,5 +1,5 @@
 // ----------------- Imports -----------------
-import {getDefaultGameData, gameData, saveGame, collectResource,update_resource, autoCollect, consumeSugar, adjustAnt, recruitAnt, buyAnthut, breedAnts } from './coregame.js';
+import {getDefaultGameData, gameData, saveGame, collectResource,update_resource, adjustAnt, recruitAnt, buyAnthut, updateGameTick } from './coregame.js';
 import { initTechTree } from './techTree.js';
 
 // ----------------- Tabs -----------------
@@ -14,6 +14,7 @@ export function openResearchTab(tab){
 }
 // ----------------- Unlocks & UI -----------------
 export function update_unlocks() {
+  buildResourceUI();
   const resourceElements = {
     wood:      { btn: "collectWoodBtn", res: "woodResource", antLine: "woodAntLine" },
     lumber:    { btn: null, res: "lumberResource", antLine: "lumberAntLine" },
@@ -43,10 +44,19 @@ export function update_unlocks() {
   }
 
   // ---------------- Buildings ----------------
-  if (gameData.buildings.anthutUnlocked) {
+  if (gameData.buildings.anthut.unlocked) {
     const anthutBtn = document.getElementById("buildAnthutBtn");
     if (anthutBtn) {
-      anthutBtn.innerText = `Build Anthut (+${gameData.buildings.anthutResidens} max ants, Cost: ${Math.floor(gameData.buildings.anthutBaseCost * Math.pow(gameData.buildings.anthutCostMultiplier, gameData.buildings.anthutLevel))} woodspliters)`;
+      const costStrings = [];
+
+      for (const resName in gameData.buildings.anthut.baseCost) {
+        
+        const base = gameData.buildings.anthut.baseCost[resName];
+        const cost = Math.floor(base * Math.pow(gameData.buildings.anthut.costMultiplier, gameData.buildings.anthut.level));
+        costStrings.push(`${cost} ${resName}`);
+      }
+
+      anthutBtn.innerText = `Build Anthut (+${gameData.buildings.anthut.residens} max ants, Cost: ${costStrings.join(', ')})`;
       anthutBtn.style.display = "inline-block";
     }
   }
@@ -101,9 +111,7 @@ export function initGame() {
   buildAntUI()
 
   // ----------------- Intervals -----------------
-  setInterval(autoCollect, 1000 / gameData.gameUpdateRate);
-  setInterval(consumeSugar, 1000 / gameData.gameUpdateRate);
-  setInterval(breedAnts, 1000 / gameData.gameUpdateRate);
+  setInterval(updateGameTick, 1000 / gameData.gameUpdateRate);
 
   // ----------------- Button Listeners -----------------
     // Main buttons
@@ -253,3 +261,5 @@ window.addEventListener('load', () => {
   loadGame();
 
 });
+
+//window.reset = resetGame()
