@@ -114,6 +114,7 @@ export const techTree = [
   prereq: ['woodUnlock'], // You can change prerequisites if needed
   effect: () => {
     gameData.resources.lumber.unlocked = true;
+    gameData.buildings.lumbermill.unlocked = true;
     buildResourceUI()
     update_unlocks();}
   },

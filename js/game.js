@@ -1,5 +1,5 @@
 // ----------------- Imports -----------------
-import {getDefaultGameData, gameData, saveGame, collectResource,update_resource, adjustAnt, recruitAnt, buyAnthut, updateGameTick } from './coregame.js';
+import {getDefaultGameData, gameData, saveGame, capitalize, collectResource,update_resource, adjustAnt, recruitAnt, buyBuilding, updateGameTick,getTotalAnts} from './coregame.js';
 import { initTechTree } from './techTree.js';
 
 // ----------------- Tabs -----------------
@@ -15,6 +15,7 @@ export function openResearchTab(tab){
 // ----------------- Unlocks & UI -----------------
 export function update_unlocks() {
   buildResourceUI();
+  buildStatUI();
   const resourceElements = {
     wood:      { btn: "collectWoodBtn", res: "woodResource", antLine: "woodAntLine" },
     lumber:    { btn: null, res: "lumberResource", antLine: "lumberAntLine" },
@@ -39,26 +40,28 @@ export function update_unlocks() {
 
     if (resData.antLine) {
       const antLineEl = document.getElementById(resData.antLine);
-      if (antLineEl) antLineEl.style.display = resUnlocked ? "inline-block" : "none";
+      if (antLineEl) antLineEl.style.display = resUnlocked ? "grid" : "none";
     }
   }
 
   // ---------------- Buildings ----------------
-  if (gameData.buildings.anthut.unlocked) {
-    const anthutBtn = document.getElementById("buildAnthutBtn");
-    if (anthutBtn) {
-      const costStrings = [];
+  for (const key in gameData.buildings) {
+    const building = gameData.buildings[key];
 
-      for (const resName in gameData.buildings.anthut.baseCost) {
-        
-        const base = gameData.buildings.anthut.baseCost[resName];
-        const cost = Math.floor(base * Math.pow(gameData.buildings.anthut.costMultiplier, gameData.buildings.anthut.level));
-        costStrings.push(`${cost} ${resName}`);
-      }
+    if (!building.unlocked) continue; // skip locked buildings
 
-      anthutBtn.innerText = `Build Anthut (+${gameData.buildings.anthut.residens} max ants, Cost: ${costStrings.join(', ')})`;
-      anthutBtn.style.display = "inline-block";
+    const btn = document.getElementById(`build${capitalize(key)}Btn`);
+    if (!btn) continue;
+
+    const costStrings = [];
+    for (const resName in building.baseCost) {
+      const base = building.baseCost[resName];
+      const cost = Math.floor(base * Math.pow(building.costMultiplier, building.level));
+      costStrings.push(`${cost} ${capitalize(resName)}`);
     }
+
+    btn.innerText = `Build ${capitalize(key)} (+${building.effect} ${building.effectText}, Cost: ${costStrings.join(", ")})`;
+    btn.style.display = "inline-block";
   }
 
   // ---------------- Ants ----------------
@@ -108,7 +111,8 @@ export function initGame() {
   update_resource();
   update_unlocks();
   buildResourceUI();
-  buildAntUI()
+  buildAntUI();
+  buildStatUI();
 
   // ----------------- Intervals -----------------
   setInterval(updateGameTick, 1000 / gameData.gameUpdateRate);
@@ -120,7 +124,9 @@ export function initGame() {
   document.getElementById('collectSugarBtn')?.addEventListener('click', () => collectResource('sugar', 1));
 
   document.getElementById('recruitAntBtn')?.addEventListener('click', recruitAnt);
-  document.getElementById('buildAnthutBtn')?.addEventListener('click', buyAnthut);
+  document.getElementById('buildAnthutBtn')?.addEventListener('click', () => buyBuilding('anthut'));
+  document.getElementById('buildLumbermillBtn')?.addEventListener('click', () => buyBuilding('lumbermill'));
+  document.getElementById('buildDeskBtn')?.addEventListener('click', () => buyBuilding('desk'));
 
   // Ant assignment
   document.getElementById('btnAntWaterMinus')?.addEventListener('click', () => adjustAnt('water', -1));
@@ -138,6 +144,7 @@ export function initGame() {
   document.getElementById('tabMainBtn')?.addEventListener('click', () => openTab('main'));
   document.getElementById('tabResearchBtn')?.addEventListener('click', () => openTab('research'));
   document.getElementById('tabAntsBtn')?.addEventListener('click', () => openTab('ants'));
+  document.getElementById('tabStatsBtn')?.addEventListener('click', () => {buildStatUI();openTab('stats');});
   document.getElementById('tabSettingsBtn')?.addEventListener('click', () => openTab('settings'));
 
   // Research subtabs
@@ -240,6 +247,108 @@ export function buildAntUI() {
   row.appendChild(countSpan);
 
   section.appendChild(row);
+}
+function buildStatUI() {
+  // ===== Resources Table =====
+  const tbody = document.getElementById("statsTableBody");
+  tbody.innerHTML = ""; // clear old rows
+  const resources = gameData.resources;
+
+  for (const key in resources) {
+    const res = resources[key];
+
+    // Only show unlocked resources (optional)
+    if (!res.unlocked) continue;
+
+    const row = document.createElement("tr");
+
+    // Resource name (capitalized)
+    const nameCell = document.createElement("td");
+    nameCell.textContent = capitalize(key);
+    row.appendChild(nameCell);
+
+    // Cost (list of costs or "free")
+    const costCell = document.createElement("td");
+    costCell.id = `stat${capitalize(key)}Cost`;
+    costCell.textContent =
+      Object.keys(res.cost).length > 0
+        ? Object.entries(res.cost)
+            .map(([resName, val]) => `${val} ${capitalize(resName)}`)
+            .join(", ")
+        : "free";
+    row.appendChild(costCell);
+
+    // Production
+    const prodCell = document.createElement("td");
+    prodCell.id = `stat${capitalize(key)}Prod`;
+    prodCell.textContent = res.prodFactor;
+    row.appendChild(prodCell);
+
+    tbody.appendChild(row);
+  }
+
+  // ===== Breeding Stats Table =====
+  const breedingTbody = document.getElementById("breedingTableBody");
+  breedingTbody.innerHTML = "";
+
+  const breedingStats = [
+    { name: "Ant sugarconsumtion",                single: 1/gameData.ants.antSugarConsumtion   , total:(1/(gameData.ants.antSugarConsumtion)*getTotalAnts()).toFixed(2)},
+    { name: "Ant breed speed / pair", single:(1/gameData.ants.antsBreedingSpeed).toFixed(3)    , total: ((1/gameData.ants.antsBreedingSpeed  )* Math.floor(gameData.ants.assignedAnts.free/2)).toFixed(3) },
+    { name: "sugar / new ant",             single: (gameData.ants.antsBreedingCost-1)*gameData.ants.antsBreedingSpeed , total:'-'   }
+  ];
+
+  for (const stat of breedingStats) {
+    if (!gameData.ants.breedingUnlocked) continue;
+    const row = document.createElement("tr");
+
+    const nameCell = document.createElement("td");
+    nameCell.textContent = stat.name;
+    row.appendChild(nameCell);
+
+    const singleCell = document.createElement("td");
+    singleCell.textContent = stat.single;
+    row.appendChild(singleCell);
+
+    const totalCell = document.createElement("td");
+    totalCell.textContent = stat.total;
+    row.appendChild(totalCell);
+
+    breedingTbody.appendChild(row);
+  }
+
+  // ===== Buildings Table =====
+  const buildingTbody = document.getElementById("buildingsTableBody");
+  buildingTbody.innerHTML = "";
+
+  const buildings = gameData.buildings;
+  for (const key in buildings) {
+    
+    const b = buildings[key];
+    if (!b.unlocked) continue;
+    const row = document.createElement("tr");
+
+    // Building name
+    const nameCell = document.createElement("td");
+    nameCell.textContent = capitalize(key);
+    row.appendChild(nameCell);
+
+    // How many built
+    const amountCell = document.createElement("td");
+    amountCell.textContent = b.level || 0;
+    row.appendChild(amountCell);
+
+    // Effect text
+    const effectTextCell = document.createElement("td");
+    effectTextCell.textContent = b.effectText || "-";
+    row.appendChild(effectTextCell);
+
+    // Effect text
+    const effectCell = document.createElement("td");
+    effectCell.textContent = b.effect*b.level || "-";
+    row.appendChild(effectCell);
+
+    buildingTbody.appendChild(row);
+  }
 }
 
 

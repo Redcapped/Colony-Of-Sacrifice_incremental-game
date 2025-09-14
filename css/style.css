@@ -64,8 +64,8 @@ body {
 /* ---------------- Buttons ---------------- */
 .main-btn, .build-btn {
   display: inline-block;
-  margin: 5px 0;
-  padding: 8px 16px;
+  margin: 8px 4px;
+  padding: 12px 30px;
   font-size: 14px;
   font-weight: bold;
   border: none;
@@ -95,6 +95,36 @@ body {
   flex-direction: column;
   gap: 10px;
 }
+#antAssignmentContainer {
+  display: flex;
+  flex-direction: column;   /* stack rows vertically */
+  gap: 4px;                 /* vertical spacing between rows */
+}
+
+.ant-line {
+  display: grid;
+  grid-template-columns: 150px 30px 50px 30px; /* label | - | count | + */
+  align-items: center;
+  gap: 6px;                 /* spacing between columns */
+  padding: 2px 0;
+}
+
+.ant-line.header {
+  font-weight: bold;
+}
+
+.ant-line button {
+  width: 20px;     /* normal small button size */
+  height: 20px;
+}
+
+.ant-line span {
+  display: block;
+  text-align: center;  /* centers numbers and labels */
+}
+
+
+
 
 /* ---------------- Tech Grid & Buttons ---------------- */
 .tech-grid {
@@ -147,7 +177,8 @@ body {
 
 /* ---------------- Tooltips ---------------- */
 .tooltip {
-  position: relative;
+  position: relative; /* make sure the container has positioning */
+  z-index: auto;
   display: inline-block;
   cursor: pointer;
 }
@@ -158,16 +189,18 @@ body {
   background-color: black;
   color: #fff;
   text-align: center;
+  font-size: 12px;
   padding: 5px 8px;
   border-radius: 6px;
   position: absolute;
-  z-index: 1;
-  bottom: 125%;
+  z-index: 9999;       /* ensure tooltip is on top of everything */
+  top: 125%;           /* below hovered button */
   left: 50%;
   transform: translateX(-50%);
   opacity: 0;
   transition: opacity 0.3s;
 }
+
 
 .tooltip:hover .tooltiptext {
   visibility: visible;

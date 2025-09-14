@@ -20,36 +20,53 @@
       <button id="tabMainBtn">Main</button>
       <button id="tabResearchBtn">Research</button>
       <button id="tabAntsBtn">Ants</button>
+      <button id="tabStatsBtn">Stats</button> 
       <button id="tabSettingsBtn">Settings</button>
+      
     </div>
     
     <!-- Main Tab -->
     <div id="main" class="tab active">
       <h1>the Sacrifice colony</h1>
 
-      <button id="collectWaterBtn" class="main-btn tooltip">
-        Collect Water 
-        <span class="tooltiptext">Collect 1 water</span>
-      </button>
-      <button id="collectSugarBtn" class="main-btn tooltip" style="display:none;">
-        Collect Sugar 
-        <span class="tooltiptext">Cost 5 water to collect 1 sugar crystal</span>
-      </button>
-      <button id="collectWoodBtn" class="main-btn tooltip" style="display:none;">
-        Collect Wood 
-        <span class="tooltiptext">Cost 2 water to collect 1 wood splinter</span>
-      </button>
-      <br>
-      <button id="recruitAntBtn" class="main-btn tooltip" style="display:none;">
-        Recruit Ant 
-        <span class="tooltiptext">Cost 5 sugar crystals</span>
-      </button>
+        <div class="tooltip">
+          <button id="collectWaterBtn" class="main-btn">
+            Collect Water
+          </button>
+          <span class="tooltiptext">Collect 1 water</span>
+        </div>
+
+        <div class="tooltip">
+          <button id="collectSugarBtn" class="main-btn" style="display:none;">
+            Collect Sugar
+          </button>
+          <span class="tooltiptext">Cost 5 water to collect 1 sugar crystal</span>
+        </div>
+
+        <div class="tooltip">
+          <button id="collectWoodBtn" class="main-btn" style="display:none;">
+            Collect Wood
+          </button>
+          <span class="tooltiptext">Cost 2 water to collect 1 wood splinter</span>
+        </div>
+
+        <br>
+
+        <div class="tooltip">
+          <button id="recruitAntBtn" class="main-btn" style="display:none;">
+            Recruit Ant
+          </button>
+          <span class="tooltiptext">Cost 10 sugar crystals</span>
+        </div>
+
       <br>
 
       <hr class="separator">
 
       <div id="buildings">
-        <button id="buildAnthutBtn" class="build-btn" style="display:none;"></button>
+        <button id="buildAnthutBtn" class="build-btn tooltip" style="display:none;"></button>
+        <button id="buildLumbermillBtn" class="build-btn tooltip" style="display:none;"></button>
+        <button id="buildDeskBtn" class="build-btn tooltip" style="display:none;"></button>
       </div>
     </div>
 
@@ -72,7 +89,7 @@
     </div>
 
     <!-- Ants Tab -->
-<div id="ants" class="tab">
+  <div id="ants" class="tab">
       <h1>Assign Ants to Jobs</h1>
 
       <!-- Breeding rate -->
@@ -89,42 +106,96 @@
       <!-- Breeding progress bar (hidden initially) -->
       <div id="breedingContainer" style="display:none; margin-top:5px;">
         <label for="breedingBar">Breeding Progress:</label>
-        <progress id="breedingBar" value="0" max="1" style="width:300px;"></progress>
         <span id="breedingPercent">0%</span>
       </div>
-      <div>
-        Water Ant: 
-        <button id="btnAntWaterMinus">-</button>
-        <span id="antsWater">0</span>
-        <button id="btnAntWaterPlus">+</button><br>
+       <!-- Ant assignment -->
+      <div id="antAssignmentContainer">
+        <!-- Header Row -->
+        <div class="ant-line header">
+          <span>Type</span>
+          <span>-</span>
+          <span>Count</span>
+          <span>+</span>
+        </div>
 
-        Sugar Ant: 
-        <button id="btnAntSugarMinus">-</button>
-        <span id="antsSugar">0</span>
-        <button id="btnAntSugarPlus">+</button><br>
+        <!-- Water Ant -->
+        <div id="waterAntLine" class="ant-line">
+          <span>Water Ant</span>
+          <button id="btnAntWaterMinus">-</button>
+          <span id="antsWater">0</span>
+          <button id="btnAntWaterPlus">+</button>
+        </div>
 
-        <span id="woodAntLine" style="display:none;">
-          Wood Ant:
+        <!-- Sugar Ant -->
+        <div id="sugarAntLine" class="ant-line">
+          <span>Sugar Ant</span>
+          <button id="btnAntSugarMinus">-</button>
+          <span id="antsSugar">0</span>
+          <button id="btnAntSugarPlus">+</button>
+        </div>
+
+        <!-- Wood Ant -->
+        <div id="woodAntLine" class="ant-line">
+          <span>Wood Ant</span>
           <button id="btnAntWoodMinus">-</button>
           <span id="antsWood">0</span>
           <button id="btnAntWoodPlus">+</button>
-        </span><br>
+        </div>
 
-        <span id="lumberAntLine" style="display:none;">
-          Lumber Ant:
+        <!-- Lumber Ant -->
+        <div id="lumberAntLine" class="ant-line">
+          <span>Lumber Ant</span>
           <button id="btnAntLumberMinus">-</button>
           <span id="antsLumber">0</span>
           <button id="btnAntLumberPlus">+</button>
-        </span><br>
-        <span id="scienceAntLine" style="display:none;">
-          Science Ant:
-          <button id="btnAntscienceMinus">-</button>
-          <span id="antsScience">0</span>
-          <button id="btnAntsciencePlus">+</button>
-        </span><br>
-      </div>
-    </div>
+        </div>
 
+        <!-- Science Ant -->
+        <div id="scienceAntLine" class="ant-line">
+          <span>Science Ant</span>
+          <button id="btnAntScienceMinus">-</button>
+          <span id="antsScience">0</span>
+          <button id="btnAntSciencePlus">+</button>
+        </div>
+
+
+
+</div>
+
+  </div>
+    <!-- Stats Tab -->
+    <div id="stats" class="tab">
+      <h1>Production Stats</h1>
+      <table id="statsTableResource" border="1" cellspacing="0" cellpadding="6">
+        <thead>
+          <tr>
+            <th>Resource</th>
+            <th>Cost</th>
+            <th>Production / Ant / Second</th>
+          </tr>
+        </thead>
+        <tbody id="statsTableBody">
+          <!-- Rows will be generated here -->
+        </tbody>
+      </table>
+
+      <h3>Breeding Stats</h3>
+      <table id="statsTableBreeding" border="1" cellspacing="0" cellpadding="6">
+        <thead>
+          <tr><th>Stat</th><th>single</th><th>total</th></tr>
+        </thead>
+        <tbody id="breedingTableBody"></tbody>
+      </table>
+
+      <h3>Buildings</h3>
+      <table id="statsTablebuilding" border="1" cellspacing="0" cellpadding="6">
+        <thead>
+          <tr><th>Building</th><th>Built</th><th>Effect</th></tr>
+        </thead>
+        <tbody id="buildingsTableBody"></tbody>
+      </table>
+
+    </div>
     <!-- Settings Tab -->
     <div id="settings" class="tab">
       <h1>Settings</h1>

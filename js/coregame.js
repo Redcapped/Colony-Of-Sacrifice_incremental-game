@@ -5,20 +5,23 @@ export function getDefaultGameData() {
   return {
     gameUpdateRate:5,
     resources:{
-      water: { amount: 0, max: 25, prodFactor: 1, assigned: 'water',cost: {},unlocked:true,info:{gain:0,loss:0}},
-      wood:  { amount: 0, max: 25, prodFactor: 1, assigned: 'wood', cost: { water: 2 }, unlocked:false,info:{gain:0,loss:0}},
-      sugar: { amount: 0, max: 25, prodFactor: 1, assigned: 'sugar', cost: { water: 5 },unlocked:false,info:{gain:0,loss:0}},
-      lumber:{ amount: 0, max: 20, prodFactor: 0.1, assigned:'lumber',cost:{wood:50},unlocked:false,info:{gain:0,loss:0}},
-      stone: { amount: 0, max: 25, prodFactor: 1, assigned:'stone',cost: {},unlocked:false,info:{gain:0,loss:0}},
-      science:{ amount: 0, max: 100, prodFactor: 0.1, assigned:'science',cost: {sugar:3},unlocked:false,info:{gain:0,loss:0}},
-      blood:{ amount: 0, max: 100, prodFactor: 0.01, assigned:'blood',cost: {},unlocked:false,info:{gain:0,loss:0}}},
+      water:  { amount: 0,  max: 25,   prodFactor: 1,     assigned: 'water',    cost: {},           unlocked:true,  info:{gain:0,loss:0}},
+      wood:   { amount: 0,  max: 25,   prodFactor: 1,     assigned: 'wood',     cost: {water: 2 }, unlocked:false, info:{gain:0,loss:0}},
+      sugar:  { amount: 0,  max: 25,   prodFactor: 1,     assigned: 'sugar',    cost: {water: 5 }, unlocked:false, info:{gain:0,loss:0}},
+      lumber: { amount: 0,  max: 20,   prodFactor: 0.1,   assigned: 'lumber',   cost: {wood:  50},    unlocked:false, info:{gain:0,loss:0}},
+      stone:  { amount: 0,  max: 25,   prodFactor: 1,     assigned: 'stone',    cost: {},           unlocked:false, info:{gain:0,loss:0}},
+      science:{ amount: 0,  max: 100,  prodFactor: 0.1,   assigned: 'science',  cost: {sugar: 3 },    unlocked:false, info:{gain:0,loss:0}},
+      blood:  { amount: 0,  max: 100,  prodFactor: 0.01,  assigned: 'blood',    cost: {},           unlocked:false, info:{gain:0,loss:0}}},
     ants:{
       recruitAntUnlocked:false,maxAnts: 10,
-      assignedAnts: { free: 0, water: 0, wood: 0, sugar: 0 ,lumber:0,stone:0,science:0},
+      assignedAnts:   { free: 0, water: 0, wood: 0, sugar: 0 ,lumber:0,stone:0,science:0},
+      assignedLimits: { lumber:1 , science:1},
       antSugarConsumtion:10,
-      breedingUnlocked:false , partialAnts: 0, antsBreedingSpeed:30, antsBreedingCost:1.5},
+      breedingUnlocked:false , partialAnts: 0, antsBreedingSpeed:30, antsBreedingCost:1.25},
     buildings:{
-      anthut:{unlocked: false, level: 0 , costMultiplier: 1.25 ,residens:2, baseCost:{'wood':10}}
+      anthut:     {unlocked: false, level: 0 , costMultiplier: 1.25,  effect:2, baseCost:{'wood':   10}, effectText:'adds max ants:'},
+      lumbermill: {unlocked: false, level: 0 , costMultiplier: 2,     effect:1, baseCost:{'wood':   10}, effectText:'adds max lumber ants:'},
+      desk:       {unlocked: false, level: 0 , costMultiplier: 2.5,   effect:1, baseCost:{'lumber': 2 }, effectText:'adds max science ants:'}
       },
     research: {}
   };
@@ -67,7 +70,7 @@ export function collectResource(key, amount) {
 
   // Update UI dynamically
 
-  const spanId = key; // e.g., waterDrops, woodSpliters, sugarCrystals
+  const spanId = key; 
   const barId = key.replace(/s$/, "") + "Bar"; 
 
   const span = document.getElementById(spanId);
@@ -82,16 +85,19 @@ export function collectResource(key, amount) {
 
 export function recruitAnt(){
   if(getTotalAnts() >= gameData.ants.maxAnts) return alert("Ant limit reached!");
-  if(gameData.resources.sugar.amount>=5){ gameData.resources.sugar.amount-=5; gameData.ants.assignedAnts.free++; update_resource(); }
+  if(gameData.resources.sugar.amount>=10){ gameData.resources.sugar.amount-=10; gameData.ants.assignedAnts.free++; update_resource(); }
 }
 
-export function buyAnthut() {
+export function buyBuilding(buildingName) {
+  const building = gameData.buildings[buildingName];
+  if (!building) return alert(`Building "${buildingName}" does not exist!`);
+
   const cost = {};
 
   // calculate current cost for each resource
-  for (const resName in gameData.buildings.anthut.baseCost) {
-    const base = gameData.buildings.anthut.baseCost[resName];
-    cost[resName] = Math.floor(base * Math.pow(gameData.buildings.anthut.costMultiplier, gameData.buildings.anthut.level));
+  for (const resName in building.baseCost) {
+    const base = building.baseCost[resName];
+    cost[resName] = Math.floor(base * Math.pow(building.costMultiplier, building.level));
   }
 
   // check if enough resources
@@ -106,26 +112,53 @@ export function buyAnthut() {
     gameData.resources[resName].amount -= cost[resName];
   }
 
-  // increase building level and max ants
-  gameData.buildings.anthut.level++;
-  gameData.ants.maxAnts += gameData.buildings.anthut.residens;
+  // increase building level
+  building.level++;
+
+  // apply building effects dynamically
+  if (building.effect) {
+    applyBuildingEffect(buildingName);
+  }
 
   // update button text
-  const anthutBtn = document.getElementById("buildAnthutBtn");
-  if (anthutBtn) {
+  const btn = document.getElementById(`build${capitalize(buildingName)}Btn`);
+  if (btn) {
     const costStrings = [];
-    for (const resName in gameData.buildings.anthut.baseCost) {
-      const base = gameData.buildings.anthut.baseCost[resName];
-      const c = Math.floor(base * Math.pow(gameData.buildings.anthut.costMultiplier, gameData.buildings.anthut.level));
+    for (const resName in building.baseCost) {
+      const base = building.baseCost[resName];
+      const c = Math.floor(base * Math.pow(building.costMultiplier, building.level));
       costStrings.push(`${c} ${resName}`);
     }
-    anthutBtn.innerText = `Build Anthut (+${gameData.buildings.anthut.residens} max ants, Cost: ${costStrings.join(', ')})`;
+    btn.innerText = `Build ${capitalize(buildingName)} (+${building.effect || 0} max ants, Cost: ${costStrings.join(', ')})`;
   }
 
   update_resource();
 }
+function applyBuildingEffect(buildingKey) {
+  const building = gameData.buildings[buildingKey];
 
+  if (!building || !building.effect) return;
 
+  switch (buildingKey) {
+    case "anthut":
+      // Anthut increases max ants
+      gameData.ants.maxAnts += building.effect;
+      break;
+
+    case "lumbermill":
+      // Lumbermill increases max lumber ants
+      gameData.ants.assignedLimits.lumber += building.effect;
+      break;
+
+    case "desk":
+      // Desk increases max science ants
+      gameData.ants.assignedLimits.science += building.effect;
+      break;
+
+    default:
+      console.warn("Unknown building effect:", buildingKey);
+  }
+}
 export function resetResourceGains() {
   for (let resName in gameData.resources) {
     const res = gameData.resources[resName];
@@ -199,15 +232,24 @@ export function update_antsUI() {
   const antTypes = ["water", "wood", "sugar", "lumber", "stone", "science"];
   antTypes.forEach(type => {
     const span = document.getElementById(`ants${capitalize(type)}`);
-    if (span) span.innerText = gameData.ants.assignedAnts[type];
-  });
-  const container = document.getElementById("freeAntsValue");
-  if (container) container.innerText = `Free ants ${ gameData.ants.assignedAnts['free']}`
-  // Breeding info
-  // Update breeding bar
-  update_breedingBar();
+    if (span) {
+      const assigned = gameData.ants.assignedAnts[type];
+      const max = gameData.ants.assignedLimits[type];
 
+      // Always show assigned/max (∞ if no limit)
+      const displayMax = (typeof max === "number" && max > 0) ? max : "∞";
+      span.innerText = `${assigned}/${displayMax}`;
+    }
+  });
+
+  // Free ants
+  const container = document.getElementById("freeAntsValue");
+  if (container) container.innerText = `Free ants ${gameData.ants.assignedAnts['free']}`;
+
+  // Breeding info
+  update_breedingBar();
 }
+
 export function update_breedingBar() {
   const container = document.getElementById("breedingContainer");
   const bar = document.getElementById("breedingBar");
@@ -229,14 +271,22 @@ export function update_resource() {
   saveGame();
 }
 
-function capitalize(str) {
+export function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
 
 // ----------------- Assign Ants -----------------
 export function adjustAnt(resource, delta){
-  if(delta>0 && gameData.ants.assignedAnts.free>0){ gameData.ants.assignedAnts.free--; gameData.ants.assignedAnts[resource]++; }
+  if (
+  delta > 0 &&
+  gameData.ants.assignedAnts.free > 0 &&
+  gameData.ants.assignedAnts[resource] < (gameData.ants.assignedLimits[resource] ?? Infinity)
+) {
+  gameData.ants.assignedAnts.free--;
+  gameData.ants.assignedAnts[resource]++;
+}
+
   else if(delta<0 && gameData.ants.assignedAnts[resource]>0){ gameData.ants.assignedAnts.free++; gameData.ants.assignedAnts[resource]--; }
   update_resource();
 }
@@ -302,7 +352,7 @@ export function autoCollect() {
   }
 }
 
-function getTotalAnts(){
+export function getTotalAnts(){
   return Object.values(gameData.ants.assignedAnts).reduce((a, b) => a + b, 0)
 }
 
@@ -352,7 +402,7 @@ export function breedAnts() {
   
   if (totalFree < 2) return; // need at least 2 free ants
     
-  // breeding rate = (pairs of free ants) * (1 ant per 10s) * breeding speed
+  // breeding rate = (pairs of free ants) * (1 ant per 30s) * breeding speed
   const ratePerSecond = (Math.floor(totalFree / 2)) / gameData.ants.antsBreedingSpeed;
   const perTick = ratePerSecond / gameData.gameUpdateRate;
     
