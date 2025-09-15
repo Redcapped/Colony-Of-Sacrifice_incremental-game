@@ -122,6 +122,26 @@ body {
   display: block;
   text-align: center;  /* centers numbers and labels */
 }
+.ants-container {
+  display: flex;
+  justify-content: space-between;
+  gap: 5px;
+}
+
+.ants-left, .ants-right {
+  flex: 1;
+  padding: 20px;
+  border: 1px solid #ccc;
+}
+
+.ants-left {
+  background: #f9f9f9;
+}
+
+.ants-right {
+  background: #fffbe6;
+}
+
 
 
 

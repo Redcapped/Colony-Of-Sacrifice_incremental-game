@@ -33,14 +33,14 @@
           <button id="collectWaterBtn" class="main-btn">
             Collect Water
           </button>
-          <span class="tooltiptext">Collect 1 water</span>
+          <span class="tooltiptext">Collect 2 water</span>
         </div>
 
         <div class="tooltip">
           <button id="collectSugarBtn" class="main-btn" style="display:none;">
             Collect Sugar
           </button>
-          <span class="tooltiptext">Cost 5 water to collect 1 sugar crystal</span>
+          <span class="tooltiptext">Cost 10 water to collect 1 sugar crystal</span>
         </div>
 
         <div class="tooltip">
@@ -67,6 +67,7 @@
         <button id="buildAnthutBtn" class="build-btn tooltip" style="display:none;"></button>
         <button id="buildLumbermillBtn" class="build-btn tooltip" style="display:none;"></button>
         <button id="buildDeskBtn" class="build-btn tooltip" style="display:none;"></button>
+        <button id="buildStorageroomBtn" class="build-btn tooltip" style="display:none;"></button>
       </div>
     </div>
 
@@ -88,9 +89,13 @@
       </div>
     </div>
 
-    <!-- Ants Tab -->
-  <div id="ants" class="tab">
-      <h1>Assign Ants to Jobs</h1>
+   <!-- Ants Tab -->
+<div id="ants" class="tab">
+
+  <div class="ants-container">
+    <!-- LEFT SIDE: Ant assignment -->
+    <div class="ants-left">
+      <h2>Assign Ants to Jobs</h2>
 
       <!-- Breeding rate -->
       <div id="breedingRate" style="display:inline-block;">
@@ -108,7 +113,8 @@
         <label for="breedingBar">Breeding Progress:</label>
         <span id="breedingPercent">0%</span>
       </div>
-       <!-- Ant assignment -->
+
+      <!-- Ant assignment -->
       <div id="antAssignmentContainer">
         <!-- Header Row -->
         <div class="ant-line header">
@@ -157,10 +163,45 @@
           <span id="antsScience">0</span>
           <button id="btnAntSciencePlus">+</button>
         </div>
+      </div>
+    </div>
+
+    <!-- RIGHT SIDE: Sacrifice section -->
+    <div class="ants-right" id="sacrificePanel">
+  <h2>Sacrifice Ants</h2>
+  <p>Sacrifice ants to gain temporary buffs.</p>
+  
+  <!-- Sacrifice Ant for Blood -->
+  <div id="sacrificeBloodContainer" style="display:none; margin-top:10px;">
+    <button id="btnSacrificeAnt">Sacrifice 1 Ant → +1 Blood</button>
+  </div>
+  <!-- Shared global controls -->
+  <div class="sacrifice-controls">
+    <button id="btnSacMinus">-</button>
+    <span id="sacrificeLevel">1</span>
+    <button id="btnSacPlus">+</button>
+  </div>
+
+
+  <!-- Individual spell info -->
+  <div id="sacrificeWater" class="sacrifice-option" style="display:none;">
+    <h3>Water Blessing</h3>
+    Level: <span id="sacWaterLevel">0</span><br>
+    Effect: <span id="sacWaterEffect">0%</span><br>
+    Time Remaining: <span id="sacWaterTime">0s</span>
+  </div>
+
+  <div id="sacrificeOwl" class="sacrifice-option" style="display:none;">
+    <h3>Owl Wisdom</h3>
+    Level: <span id="sacOwlLevel">0</span><br>
+    Effect: <span id="sacOwlEffect">0%</span><br>
+    Time Remaining: <span id="sacOwlTime">0s</span>
+  </div>
+  </div>
+  </div>
 
 
 
-</div>
 
   </div>
     <!-- Stats Tab -->

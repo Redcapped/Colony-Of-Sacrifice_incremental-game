@@ -6,23 +6,30 @@ export function getDefaultGameData() {
     gameUpdateRate:5,
     resources:{
       water:  { amount: 0,  max: 25,   prodFactor: 1,     assigned: 'water',    cost: {},           unlocked:true,  info:{gain:0,loss:0}},
-      wood:   { amount: 0,  max: 25,   prodFactor: 1,     assigned: 'wood',     cost: {water: 2 }, unlocked:false, info:{gain:0,loss:0}},
-      sugar:  { amount: 0,  max: 25,   prodFactor: 1,     assigned: 'sugar',    cost: {water: 5 }, unlocked:false, info:{gain:0,loss:0}},
-      lumber: { amount: 0,  max: 20,   prodFactor: 0.1,   assigned: 'lumber',   cost: {wood:  50},    unlocked:false, info:{gain:0,loss:0}},
+      wood:   { amount: 0,  max: 25,   prodFactor: 1,     assigned: 'wood',     cost: {water: 2 },  unlocked:false, info:{gain:0,loss:0}},
+      sugar:  { amount: 0,  max: 25,   prodFactor: 0.5,   assigned: 'sugar',    cost: {water: 10},  unlocked:false, info:{gain:0,loss:0}},
+      lumber: { amount: 0,  max: 20,   prodFactor: 1/25,  assigned: 'lumber',   cost: {wood:  25},  unlocked:false, info:{gain:0,loss:0}},
       stone:  { amount: 0,  max: 25,   prodFactor: 1,     assigned: 'stone',    cost: {},           unlocked:false, info:{gain:0,loss:0}},
-      science:{ amount: 0,  max: 100,  prodFactor: 0.1,   assigned: 'science',  cost: {sugar: 3 },    unlocked:false, info:{gain:0,loss:0}},
-      blood:  { amount: 0,  max: 100,  prodFactor: 0.01,  assigned: 'blood',    cost: {},           unlocked:false, info:{gain:0,loss:0}}},
+      science:{ amount: 0,  max: 100,  prodFactor: 0.1,   assigned: 'science',  cost: {sugar: 3 },  unlocked:false, info:{gain:0,loss:0}},
+      blood:  { amount: 0,  max: 5,    prodFactor: 0.01,  assigned: 'blood',    cost: {},           unlocked:false, info:{gain:0,loss:0}}},
     ants:{
       recruitAntUnlocked:false,maxAnts: 10,
       assignedAnts:   { free: 0, water: 0, wood: 0, sugar: 0 ,lumber:0,stone:0,science:0},
       assignedLimits: { lumber:1 , science:1},
-      antSugarConsumtion:10,
-      breedingUnlocked:false , partialAnts: 0, antsBreedingSpeed:30, antsBreedingCost:1.25},
+      antSugarConsumtion:20,
+      breedingUnlocked:false , partialAnts: 0, antsBreedingSpeed:30, antsBreedingCost:8},
     buildings:{
-      anthut:     {unlocked: false, level: 0 , costMultiplier: 1.25,  effect:2, baseCost:{'wood':   10}, effectText:'adds max ants:'},
-      lumbermill: {unlocked: false, level: 0 , costMultiplier: 2,     effect:1, baseCost:{'wood':   10}, effectText:'adds max lumber ants:'},
-      desk:       {unlocked: false, level: 0 , costMultiplier: 2.5,   effect:1, baseCost:{'lumber': 2 }, effectText:'adds max science ants:'}
+      anthut:     {unlocked: false, level: 0 , costMultiplier: 1.25,  effect:2,   baseCost:{'wood':   10}, effectText:'adds max ants:'},
+      lumbermill: {unlocked: false, level: 0 , costMultiplier: 2,     effect:1,   baseCost:{'wood':   10}, effectText:'adds max lumber ants:'},
+      desk:       {unlocked: false, level: 0 , costMultiplier: 2.5,   effect:1,   baseCost:{'lumber': 2 }, effectText:'adds max science ants:'},
+      storageroom:{unlocked: false, level: 0 , costMultiplier: 1.5,   effect:10,  baseCost:{'lumber': 5 }, effectText:'sugar/wood:'}
       },
+    sacrifice:{unlocked:false, durationMult:1, durationAdd:0, globalLevel:1,globalMaxLevel:1,
+      fish: {unlocked:false, duration:15, baseAntcost:1,  baseBloodcost:5,  baseEffect:1.5, effectText:'increase the waterproduction'},
+      owl:  {unlocked:false, duration:20, baseAntcost:2,  baseBloodcost:15, baseEffect:2,   effectText:'increase the max knowlage'}
+
+
+    },
     research: {}
   };
 }
@@ -44,9 +51,12 @@ export function collectResource(key, amount) {
 
   // Calculate how much can actually be produced (storage limit)
   const spaceLeft = res.max - res.amount;
+  if (key == 'water'){
+    amount = amount * 2
+  }
   let producible = Math.min(amount, spaceLeft);
   if (producible <= 0) return; // Storage full
-
+  
   // If resource has a cost, scale production by available cost resources
   if (res.cost) {
     let maxAmountByCost = producible; // start with space-limited amount
@@ -129,7 +139,7 @@ export function buyBuilding(buildingName) {
       const c = Math.floor(base * Math.pow(building.costMultiplier, building.level));
       costStrings.push(`${c} ${resName}`);
     }
-    btn.innerText = `Build ${capitalize(buildingName)} (+${building.effect || 0} max ants, Cost: ${costStrings.join(', ')})`;
+    btn.innerText = `Build ${capitalize(buildingName)} (+${building.effect || 0} ${building.effectText}, Cost: ${costStrings.join(', ')})`;
   }
 
   update_resource();
@@ -153,6 +163,12 @@ function applyBuildingEffect(buildingKey) {
     case "desk":
       // Desk increases max science ants
       gameData.ants.assignedLimits.science += building.effect;
+      break;
+    
+    case "storageroom":
+      //storageroom increases max sugar and wood
+      gameData.resources.sugar.max += building.effect;
+      gameData.resources.wood.max += building.effect;
       break;
 
     default:
@@ -187,7 +203,7 @@ export function update_resourcesUI() {
     if (res.info){
       const gain = res.info.gain * gameData.gameUpdateRate;
       const loss = (res.info.loss || 0) * gameData.gameUpdateRate;
-      var netgain = gain + loss;
+      var netgain = gain - loss;
       var color = "gray";
       var timeText = "∞";
       if (res.amount >= res.max) {
@@ -290,7 +306,11 @@ export function adjustAnt(resource, delta){
   else if(delta<0 && gameData.ants.assignedAnts[resource]>0){ gameData.ants.assignedAnts.free++; gameData.ants.assignedAnts[resource]--; }
   update_resource();
 }
+export function adjustSacLevel(delta){
+if (delta > 0 && gameData.sacrifice.globalLevel < gameData.sacrifice.globalMaxLevel){gameData.sacrifice.globalLevel += delta}
+if (delta < 0 && gameData.sacrifice.globalLevel > 0){gameData.sacrifice.globalLevel += delta}
 
+}
 // ----------------- Auto Collect -----------------
 export function autoCollect() {
   const timeFactor = 1 / gameData.gameUpdateRate;
@@ -311,63 +331,78 @@ export function autoCollect() {
     }
   }
 
-  // Step 2: Calculate net changes without applying
-  const netChange = {}; // key -> net change
-  productionRequests.forEach(req => {
-    const res = req.res;
-    let produceAmount = req.requested;
+ // Step 2: Calculate net changes without applying
+const netChange = {}; // key -> { gain: x, loss: y }
 
-    // Scaling by cost and space
-    let scalingFactor = 1;
-    if (res.cost) {
-      for (let costRes in res.cost) {
-        const available = gameData.resources[costRes]?.amount || 0;
-        const spaceLeft = res.max - res.amount;
-        scalingFactor = Math.min(scalingFactor, available / (res.cost[costRes] * produceAmount),spaceLeft / produceAmount);
-      }
+productionRequests.forEach(req => {
+  const res = req.res;
+  let produceAmount = req.requested;
+
+  // Scaling by cost and space
+  let scalingFactor = 1;
+  if (res.cost) {
+    for (let costRes in res.cost) {
+      const available = gameData.resources[costRes]?.amount || 0;
+      const spaceLeft = res.max - res.amount;
+      scalingFactor = Math.min(
+        scalingFactor,
+        available / (res.cost[costRes] * produceAmount),
+        spaceLeft / produceAmount
+      );
     }
-
-    produceAmount *= scalingFactor;
-    if (produceAmount <= 0) return;
-
-    // Add net change for produced resource
-    netChange[req.key] = (netChange[req.key] || 0) + produceAmount;
-    res.info.gain =netChange[req.key]
-    // Subtract net change for cost resources
-    if (res.cost) {
-      for (let costRes in res.cost) {
-        const costAmount = res.cost[costRes] * produceAmount;
-        netChange[costRes] = (netChange[costRes] || 0) - costAmount;
-        gameData.resources[costRes].info.loss = netChange[costRes] - gameData.resources[costRes].info.gain
-      }
-    }
-  });
-
-  // Step 3: Apply net changes
-  for (let key in netChange) {
-    const res = gameData.resources[key];
-    if (!res) continue;
-    
-    res.amount = Math.min(res.max, Math.max(0, res.amount + netChange[key]));
   }
-}
 
+  produceAmount *= scalingFactor;
+  if (produceAmount <= 0) return;
+
+  // --- Track gains ---
+  if (!netChange[req.key]) netChange[req.key] = { gain: 0, loss: 0 };
+  netChange[req.key].gain += produceAmount;
+
+  // --- Track costs (losses) ---
+  if (res.cost) {
+    for (let costRes in res.cost) {
+      const costAmount = res.cost[costRes] * produceAmount;
+      if (!netChange[costRes]) netChange[costRes] = { gain: 0, loss: 0 };
+      netChange[costRes].loss += costAmount;
+    }
+  }
+});
+
+// Step 3: Apply net changes
+for (let key in netChange) {
+  const res = gameData.resources[key];
+  if (!res) continue;
+
+  const change = netChange[key].gain - netChange[key].loss;
+
+  // Update amount
+  res.amount = Math.min(res.max, Math.max(0, res.amount + change));
+
+  // Update info
+  res.info.gain += netChange[key].gain;
+  res.info.loss += netChange[key].loss;
+}
+}
 export function getTotalAnts(){
   return Object.values(gameData.ants.assignedAnts).reduce((a, b) => a + b, 0)
 }
 
 // ----------------- Consume Sugar -----------------
 export function consumeSugarAnts(){
-  let timeFactor = 0.1/gameData.gameUpdateRate
+  let timeFactor = 1/gameData.gameUpdateRate
+  let sugarNeedAnt = 1/gameData.ants.antSugarConsumtion
   // Calculate total ants
   const totalAnts = getTotalAnts();
   if (totalAnts === 0) return;
-  let sugarNeed = totalAnts*timeFactor
+  let sugarNeed = totalAnts*timeFactor*sugarNeedAnt
   // minus the breedingcost if there are ant breeding
   if (gameData.ants.maxAnts > totalAnts && gameData.ants.breedingUnlocked){
-    sugarNeed += Math.floor(gameData.ants.assignedAnts.free/2) * (gameData.ants.antsBreedingCost-1) * timeFactor
+    sugarNeed += Math.floor(gameData.ants.assignedAnts.free/2) * (gameData.ants.antsBreedingCost/gameData.ants.antsBreedingSpeed) * timeFactor
   }
-  gameData.resources.sugar.info.loss = -sugarNeed
+  
+  gameData.resources.sugar.info.loss += sugarNeed
+  
   // Normal case: enough sugar
   if (gameData.resources.sugar.amount >= sugarNeed) {
     gameData.resources.sugar.amount -= sugarNeed;

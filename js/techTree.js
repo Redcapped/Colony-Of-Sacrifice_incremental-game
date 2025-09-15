@@ -111,7 +111,7 @@ export const techTree = [
   name: 'the termite life',
   desc: 'Unlock the ability to create lumber. Only ants assigned as Lumberjacks ants can produce this resource.',
   cost: { wood: 25 },
-  prereq: ['woodUnlock'], // You can change prerequisites if needed
+  prereq: ['woodUnlock'],
   effect: () => {
     gameData.resources.lumber.unlocked = true;
     gameData.buildings.lumbermill.unlocked = true;
@@ -120,20 +120,72 @@ export const techTree = [
   },
   {
     id:'cheaperSugar',
-    name:'building a bridge',
-    desc:'decreases the cost of sugar to 4 water',
+    name:'building a bridge to a closer sugar source',
+    desc:'decreases the cost of sugar by 1 water',
     cost:{lumber:10},
     prereq:['lumberjackUnlock'],
-    effect:()=>{ gameData.resources.sugar.cost = {water:4},update_unlocks(); }
+    effect:()=>{ gameData.resources.sugar.cost = {water:gameData.resources.sugar.cost['water']-1},update_unlocks(); }
   },
   {
     id:'scienceAnt',
-    name:'its science time',
-    desc:'unlock scolar ant uses 4 * the sugar but produces knowledge',
+    name:'Its time to think',
+    desc:'unlock scolar ant and desks. assinged scolar ants produces 1 science every 10 seconds for 3 sugar',
     cost:{water:120},
-    prereq:['waterProd 1','lumberjackUnlock'],
-    effect:()=>{ gameData.resources.science.unlocked = true,update_unlocks(); }
+    prereq:['waterProd 1','lumberjackUnlock','waterhole 2'],
+    effect:()=>{ 
+      gameData.resources.science.unlocked = true,
+      gameData.buildings.desk.unlocked = true,
+      update_unlocks(); }
   },
+  {
+  id: 'storageroomUnlock',
+  name: 'Storageroom',
+  desc: 'Unlock the ability to build a storageroom',
+  cost: { science: 50 },
+  prereq: ['scienceAnt'],
+  effect: () => {
+    gameData.buildings.storageroom.unlocked = true;
+    buildResourceUI();
+    update_unlocks();}
+  },
+  {
+  id: 'sacrificeAltar 1',
+  name: 'Ritual sacrifice',
+  desc: 'Unlock the ability to sacrifice to gain a bit of blood',
+  cost: { science: 50 },
+  prereq: ['scienceAnt','breeding'], 
+  effect: () => {
+    gameData.sacrifice.unlocked = true;
+    gameData.resources.blood.unlocked = true;
+    buildResourceUI();
+    update_unlocks();}
+  },
+  {
+  id: 'sacrificeFish 1',
+  name: 'sacrifice to the Fish',
+  desc: 'Unlock the sacrifice to the fish',
+  cost: { science: 50 },
+  prereq: ['sacrificeAltar 1'], 
+  effect: () => {
+    gameData.sacrifice.fish.unlocked = true;
+    buildResourceUI();
+    update_unlocks();}
+  },
+
+  {
+  id: 'bloodpit 1',
+  name: 'What to do with all the blood',
+  desc: 'convert 100 waterStorage to 15 blood Storage',
+  cost: { science: 50 },
+  prereq: ['sacrificeAltar 1'], 
+  effect: () => {
+    gameData.resources.water.max = gameData.resources.water.max - 100;
+    gameData.resources.water.amount = Math.min(gameData.resources.water.amount, gameData.resources.water.max);
+    gameData.resources.blood.max += 15
+    buildResourceUI();
+    update_unlocks();}
+  },
+  
 ];
 export function initTechTree(){ updateTechs(); }
 

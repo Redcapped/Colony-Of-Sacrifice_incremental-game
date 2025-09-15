@@ -1,5 +1,5 @@
 // ----------------- Imports -----------------
-import {getDefaultGameData, gameData, saveGame, capitalize, collectResource,update_resource, adjustAnt, recruitAnt, buyBuilding, updateGameTick,getTotalAnts} from './coregame.js';
+import {getDefaultGameData, gameData, saveGame, capitalize, collectResource,update_resource, adjustSacLevel,adjustAnt, recruitAnt, buyBuilding, updateGameTick,getTotalAnts} from './coregame.js';
 import { initTechTree } from './techTree.js';
 
 // ----------------- Tabs -----------------
@@ -96,7 +96,20 @@ export function update_unlocks() {
 
   const freeAnts = document.getElementById("freeAntsValue");
   if (freeAnts) freeAnts.innerText = gameData.ants.assignedAnts.free;
+  // ---------------- Sacrifice Panel ----------------
+  const sacrificePanel = document.getElementById("sacrificePanel");
+  if (sacrificePanel) {
+    sacrificePanel.style.display = gameData.sacrifice.unlocked ? "block" : "none";
+  }
+  const sacrificeBloodContainer = document.getElementById("sacrificeBloodContainer");
+  if (sacrificeBloodContainer) {
+  sacrificeBloodContainer.style.display =gameData.sacrifice.unlocked ? "block" : "none";
 
+  const btnSacrificeAnt = document.getElementById("btnSacrificeAnt");
+  if (btnSacrificeAnt) {
+    btnSacrificeAnt.disabled = gameData.ants.assignedAnts.free <= 0;
+  }
+}
   // ---------------- Resource UI ----------------
   update_resource();
 }
@@ -127,6 +140,7 @@ export function initGame() {
   document.getElementById('buildAnthutBtn')?.addEventListener('click', () => buyBuilding('anthut'));
   document.getElementById('buildLumbermillBtn')?.addEventListener('click', () => buyBuilding('lumbermill'));
   document.getElementById('buildDeskBtn')?.addEventListener('click', () => buyBuilding('desk'));
+  document.getElementById('buildStorageroomBtn')?.addEventListener('click', () => buyBuilding('storageroom'));
 
   // Ant assignment
   document.getElementById('btnAntWaterMinus')?.addEventListener('click', () => adjustAnt('water', -1));
@@ -139,6 +153,10 @@ export function initGame() {
   document.getElementById('btnAntLumberPlus')?.addEventListener('click', () => adjustAnt('lumber', 1));
   document.getElementById('btnAntScienceMinus')?.addEventListener('click', () => adjustAnt('science', -1));
   document.getElementById('btnAntSciencePlus')?.addEventListener('click', () => adjustAnt('science', 1));
+  // Ant sacrifice
+  document.getElementById('btnSacMinus')?.addEventListener('click', () => adjustSacLevel(-1));
+  document.getElementById('btnSacPlus')?.addEventListener('click', () => adjustSacLevel(1));
+
 
   // Tabs
   document.getElementById('tabMainBtn')?.addEventListener('click', () => openTab('main'));
