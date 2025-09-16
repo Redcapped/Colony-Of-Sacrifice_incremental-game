@@ -23,11 +23,6 @@ body {
   box-sizing: border-box;
 }
 
-
-
-
-
-
 /* ---------------- Game Content ---------------- */
 .gameContent {
   margin-left: 320px; /* space for resource bar */
@@ -61,40 +56,105 @@ body {
 .tab-bar button:hover { text-decoration: underline; }
 .tab-bar button:focus { outline: none; }
 
-/* ---------------- Buttons ---------------- */
-.main-btn, .build-btn {
+/* Apply same styles to both .main-btn and .tech-btn */
+.main-btn,
+.tech-btn,
+.build-btn {
   display: inline-block;
-  margin: 8px 4px;
-  padding: 12px 30px;
+  margin: 6px 4px;
+  padding: 12px 24px;
   font-size: 14px;
-  font-weight: bold;
+  font-weight: 600;
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
-  background: linear-gradient(to right, #4CAF50, #45a049);
-  color: white;
-  transition: transform 0.1s, background 0.2s;
+  color: #fff;
+  background: linear-gradient(135deg, #1e2a2e, #0b0d0b);
+  box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+  transition: transform 0.15s ease, background 0.3s ease, box-shadow 0.3s ease;
 }
 
-.main-btn:hover, .build-btn:hover {
-  transform: scale(1.05);
-  background: linear-gradient(to right, #45a049, #4CAF50);
+/* Hover effect */
+.main-btn:hover:not(:disabled),
+.tech-btn:hover:not(:disabled),
+.build-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #43a047, #1b5e20);
+  box-shadow: 0 5px 10px rgba(0,0,0,0.25);
 }
 
-/* White separator line */
-.separator {
-  border: none;
-  height: 2px;
-  background-color: white;
-  margin: 15px 0;
+/* Active/pressed effect */
+.main-btn:active:not(:disabled),
+.tech-btn:active:not(:disabled),
+.build-btn:active:not(:disabled){
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
-/* Buildings container styling */
-#buildings {
+/* Disabled state */
+.main-btn:disabled,
+.tech-btn:disabled,
+.build-btn:disabled{
+  background: linear-gradient(135deg, #b0b0b0, #8d8d8d);
+  color: #e0e0e0;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+  opacity: 0.7;
+}
+
+
+/* Main grid container */
+.main-grid {
+  display: grid;
+  grid-template-columns: 70% 30%; /* left column 70%, right column 30% */
+  column-gap: 20px;
+  row-gap: 12px;
+  width: 100%;
+  overflow: visible;
+  z-index: auto;
+}
+
+
+/* Each row spans the left 70% */
+.grid-row {
+  grid-column: 1 / 2; /* span only the left column */
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
   gap: 10px;
+  overflow: visible;
+  z-index: auto;
 }
+
+/* Text lines left-aligned */
+.text-line {
+  font-weight: bold;
+  font-size: 16px;
+  justify-content: flex-start; /* left align */
+}
+
+/* Buttons in sets of 3 per row */
+.grid-row.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-top: 15px;
+   /* left align buttons */
+}
+
+
+
+.event-log {
+  grid-column: 2 / 3; /* occupy the right 30% column */
+  padding: 10px;
+  border: 1px solid #ccc;
+  background: #fffbe6;
+  height: 100%;        /* fill height of the grid */
+  overflow-y: auto;
+  font-size: 14px;
+}
+
+
 #antAssignmentContainer {
   display: flex;
   flex-direction: column;   /* stack rows vertically */
@@ -142,10 +202,6 @@ body {
   background: #fffbe6;
 }
 
-
-
-
-
 /* ---------------- Tech Grid & Buttons ---------------- */
 .tech-grid {
   display: grid;
@@ -154,77 +210,63 @@ body {
   margin-top: 15px;
 }
 
-.tech-btn {
-  padding: 12px;
-  font-size: 14px;
-  cursor: pointer;
-  border-radius: 6px;
-  background: #eee;
-  border: 1px solid #ccc;
-  position: relative;
-  transition: background 0.2s;
-}
-
-.tech-btn:hover:not(:disabled) { background: #ddd; }
-.tech-btn:disabled { background: #ccc; cursor: not-allowed; }
-
-/* Tooltip inside tech button */
-.tech-btn .tooltip {
-  visibility: hidden;
-  opacity: 0;
-  background: #333;
-  color: #fff;
-  text-align: left;
-  padding: 6px 10px;
-  border-radius: 6px;
-  position: absolute;
-  bottom: 110%;
-  left: 50%;
-  transform: translateX(-50%);
-  white-space: pre-line;
-  transition: opacity 0.2s;
-  z-index: 10;
-}
-
-.tech-btn:hover .tooltip {
-  visibility: visible;
-  opacity: 1;
-}
-
 /* ---------------- Research Subtabs ---------------- */
 .research-subtab { display: none; }
 .research-subtab.active { display: block; }
 
 /* ---------------- Tooltips ---------------- */
+/* Tooltip wrapper now takes the same space as a grid item */
+/* Tooltip wrapper should behave like a normal grid item */
 .tooltip {
-  position: relative; /* make sure the container has positioning */
-  z-index: auto;
-  display: inline-block;
-  cursor: pointer;
+  position: relative;
+  display: block;             /* block makes it fill the grid cell */
+  width: 100%;                /* fill grid cell width */
+  box-sizing: border-box;
+  overflow: visible;
 }
 
+/* Buttons inside tooltip wrapper */
+.tooltip .tech-btn,
+.tooltip .main-btn,
+.tooltip .build-btn {
+  width: 100%;                /* button fills the wrapper */
+  box-sizing: border-box;
+}
+
+/* Tooltip itself (unchanged mostly) */
 .tooltip .tooltiptext {
   visibility: hidden;
-  width: 140px;
   background-color: black;
   color: #fff;
-  text-align: center;
+  text-align: left;
   font-size: 12px;
   padding: 5px 8px;
   border-radius: 6px;
-  position: absolute;
-  z-index: 9999;       /* ensure tooltip is on top of everything */
-  top: 125%;           /* below hovered button */
+  position: absolute;       /* positioned relative to wrapper */
+  z-index: 9999;
   left: 50%;
   transform: translateX(-50%);
   opacity: 0;
   transition: opacity 0.3s;
-}
 
+  width: max-content;
+  max-width: 220px;
+  white-space: pre-line;
+
+  border: 2px solid white;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+
+  top: 125%;               /* default below the button */
+}
 
 .tooltip:hover .tooltiptext {
   visibility: visible;
   opacity: 1;
+}
+
+.tooltip .tooltiptext.top {
+  top: auto;
+  bottom: 125%;
 }
 
 

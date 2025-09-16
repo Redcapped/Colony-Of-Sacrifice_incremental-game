@@ -50,18 +50,12 @@ export function update_unlocks() {
 
     if (!building.unlocked) continue; // skip locked buildings
 
-    const btn = document.getElementById(`build${capitalize(key)}Btn`);
-    if (!btn) continue;
-
-    const costStrings = [];
-    for (const resName in building.baseCost) {
-      const base = building.baseCost[resName];
-      const cost = Math.floor(base * Math.pow(building.costMultiplier, building.level));
-      costStrings.push(`${cost} ${capitalize(resName)}`);
-    }
-
-    btn.innerText = `Build ${capitalize(key)} (+${building.effect} ${building.effectText}, Cost: ${costStrings.join(", ")})`;
-    btn.style.display = "inline-block";
+    const span = document.getElementById(`build${capitalize(key)}Tooltip`);
+    if (!span) continue;
+    const wrapper = tooltip.parentElement;
+    if (wrapper){wrapper.style.display = "block";}
+    
+    updateBuildingText(key)    
   }
 
   // ---------------- Ants ----------------
@@ -113,10 +107,6 @@ export function update_unlocks() {
   // ---------------- Resource UI ----------------
   update_resource();
 }
-
-
-
-
 // ----------------- Game Initialization -----------------
 export function initGame() {
   loadGame();
@@ -126,6 +116,7 @@ export function initGame() {
   buildResourceUI();
   buildAntUI();
   buildStatUI();
+  buildBuildingUI();
 
   // ----------------- Intervals -----------------
   setInterval(updateGameTick, 1000 / gameData.gameUpdateRate);
@@ -137,10 +128,6 @@ export function initGame() {
   document.getElementById('collectSugarBtn')?.addEventListener('click', () => collectResource('sugar', 1));
 
   document.getElementById('recruitAntBtn')?.addEventListener('click', recruitAnt);
-  document.getElementById('buildAnthutBtn')?.addEventListener('click', () => buyBuilding('anthut'));
-  document.getElementById('buildLumbermillBtn')?.addEventListener('click', () => buyBuilding('lumbermill'));
-  document.getElementById('buildDeskBtn')?.addEventListener('click', () => buyBuilding('desk'));
-  document.getElementById('buildStorageroomBtn')?.addEventListener('click', () => buyBuilding('storageroom'));
 
   // Ant assignment
   document.getElementById('btnAntWaterMinus')?.addEventListener('click', () => adjustAnt('water', -1));
@@ -172,11 +159,6 @@ export function initGame() {
   // Reset button
   document.getElementById('resetGameBtn')?.addEventListener('click', resetGame);
 }
-// ----------------- Load on Window -----------------
-window.addEventListener("DOMContentLoaded", () => {
-  initGame();
-});
-
 function loadGame() {
   const defaultData = getDefaultGameData();
   const saved = localStorage.getItem('Colony_of_sacrifce');
@@ -191,6 +173,7 @@ function loadGame() {
   initTechTree(); // redraw tech tree correctly
 }
 export function buildResourceUI() {
+  enableTooltips();
   const section = document.getElementById("resourcesSection");
   section.innerHTML = ""; // clear any old content
 
@@ -310,9 +293,10 @@ function buildStatUI() {
   breedingTbody.innerHTML = "";
 
   const breedingStats = [
-    { name: "Ant sugarconsumtion",                single: 1/gameData.ants.antSugarConsumtion   , total:(1/(gameData.ants.antSugarConsumtion)*getTotalAnts()).toFixed(2)},
-    { name: "Ant breed speed / pair", single:(1/gameData.ants.antsBreedingSpeed).toFixed(3)    , total: ((1/gameData.ants.antsBreedingSpeed  )* Math.floor(gameData.ants.assignedAnts.free/2)).toFixed(3) },
-    { name: "sugar / new ant",             single: (gameData.ants.antsBreedingCost-1)*gameData.ants.antsBreedingSpeed , total:'-'   }
+    { name: "Ant sugar need (S)",         single: 1/gameData.ants.antSugarConsumtion   , total:(1/(gameData.ants.antSugarConsumtion)*getTotalAnts()).toFixed(2)},
+    { name: "breedspeed (S)",              single: (gameData.ants.antsBreedingSpeed)    , total: ((gameData.ants.antsBreedingSpeed  )/ Math.floor(gameData.ants.assignedAnts.free/2)).toFixed(0) },
+    { name: "sugar / new ant",             single: (gameData.ants.antsBreedingCost), total:'-'   },
+    { name: "sugarcost breeding",          single: (gameData.ants.antsBreedingCost/gameData.ants.antsBreedingSpeed).toFixed(3), total:(gameData.ants.antsBreedingCost/gameData.ants.antsBreedingSpeed)*Math.floor(gameData.ants.assignedAnts.free/2).toFixed(3)  }
   ];
 
   for (const stat of breedingStats) {
@@ -368,6 +352,82 @@ function buildStatUI() {
     buildingTbody.appendChild(row);
   }
 }
+function buildBuildingUI() {
+  const container = document.getElementById("buildingsContainer");
+  if (!container) return; // safety check
+  const buildings = gameData.buildings;
+
+  for (const key in buildings) {
+    const building = buildings[key];
+
+    if (!building) continue;
+
+    // Tooltip wrapper
+    const tooltipWrapper = document.createElement("div");
+    tooltipWrapper.className = "tooltip";
+    tooltipWrapper.style.display = building.unlocked ? "block" : "none";
+
+    // Button
+    const btn = document.createElement("button");
+    btn.className = "build-btn";
+    btn.id = `build${capitalize(key)}Btn`;
+
+    // Click listener
+    btn.addEventListener('click', () => buyBuilding(`${key}`));
+
+    // Tooltip
+    const tooltipText = document.createElement("span");
+    tooltipText.className = "tooltiptext";
+    tooltipText.id = `build${capitalize(key)}Tooltip`;
+
+    
+
+    // Assemble
+    tooltipWrapper.appendChild(btn);
+    tooltipWrapper.appendChild(tooltipText);
+    container.appendChild(tooltipWrapper);
+
+    // Add text to button
+    updateBuildingText(key)
+  }
+}
+export function updateBuildingText(buildingName){
+const building = gameData.buildings[buildingName]
+const tooltip = document.getElementById(`build${capitalize(buildingName)}Tooltip`);
+const btn = document.getElementById(`build${capitalize(buildingName)}Btn`);
+
+
+if (!tooltip |!btn){return}
+
+const costStrings = [];
+  for (const resName in building.baseCost) {
+    const base = building.baseCost[resName];
+    const cost = Math.floor(base * Math.pow(building.costMultiplier, building.level));
+    costStrings.push(`${cost} ${capitalize(resName)}`);
+  }
+tooltip.innerText = `${building.tooltipText} (+${building.effect} ${building.effectText}, Cost: ${costStrings.join(", ")})`
+btn.innerText = `${capitalize(buildingName)}  (${building.level})`
+
+
+}
+function enableTooltips() {
+  // Find all elements with class "tooltip" that contain a ".tooltiptext" span
+  const tooltips = document.querySelectorAll(".tooltip");
+
+  tooltips.forEach(wrapper => {
+    const tooltip = wrapper.querySelector(".tooltiptext");
+    if (!tooltip) return;
+
+    // On hover, auto-flip if tooltip would go offscreen
+    wrapper.addEventListener("mouseenter", () => {
+      tooltip.classList.remove("top"); // reset
+      const rect = tooltip.getBoundingClientRect();
+      if (rect.bottom > window.innerHeight) {
+        tooltip.classList.add("top"); // flip above button
+      }
+    });
+  });
+}
 
 
 export function resetGame() {
@@ -386,7 +446,9 @@ export function resetGame() {
 
 window.addEventListener('load', () => {
   loadGame();
-
 });
-
+// ----------------- Load on Window -----------------
+window.addEventListener("DOMContentLoaded", () => {
+  initGame();
+});
 //window.reset = resetGame()

@@ -1,6 +1,6 @@
 // ----------------- Game Data -----------------
 import { initTechTree } from './techTree.js';
-import { update_unlocks } from './game.js';
+import { update_unlocks,updateBuildingText } from './game.js';
 export function getDefaultGameData() {
   return {
     gameUpdateRate:5,
@@ -17,12 +17,12 @@ export function getDefaultGameData() {
       assignedAnts:   { free: 0, water: 0, wood: 0, sugar: 0 ,lumber:0,stone:0,science:0},
       assignedLimits: { lumber:1 , science:1},
       antSugarConsumtion:20,
-      breedingUnlocked:false , partialAnts: 0, antsBreedingSpeed:30, antsBreedingCost:8},
+      breedingUnlocked:false , partialAnts: 0, antsBreedingSpeed:64, antsBreedingCost:8},
     buildings:{
-      anthut:     {unlocked: false, level: 0 , costMultiplier: 1.25,  effect:2,   baseCost:{'wood':   10}, effectText:'adds max ants:'},
-      lumbermill: {unlocked: false, level: 0 , costMultiplier: 2,     effect:1,   baseCost:{'wood':   10}, effectText:'adds max lumber ants:'},
-      desk:       {unlocked: false, level: 0 , costMultiplier: 2.5,   effect:1,   baseCost:{'lumber': 2 }, effectText:'adds max science ants:'},
-      storageroom:{unlocked: false, level: 0 , costMultiplier: 1.5,   effect:10,  baseCost:{'lumber': 5 }, effectText:'sugar/wood:'}
+      anthut:     {unlocked: false, level: 0 , costMultiplier: 1.25,  effect:2,   baseCost:{'wood':   10}, effectText:'adds max ants:', tooltipText:'basic place for an ant to live \n ------------- \n'},
+      lumbermill: {unlocked: false, level: 0 , costMultiplier: 2,     effect:1,   baseCost:{'wood':   10}, effectText:'adds max lumber ants:',tooltipText:'bla bla bla'},
+      desk:       {unlocked: false, level: 0 , costMultiplier: 2.5,   effect:1,   baseCost:{'lumber': 2 }, effectText:'adds max science ants:',tooltipText:'bla bla bla'},
+      storageroom:{unlocked: false, level: 0 , costMultiplier: 1.5,   effect:10,  baseCost:{'lumber': 5 }, effectText:'sugar/wood:',tooltipText:'bla bla bla'}
       },
     sacrifice:{unlocked:false, durationMult:1, durationAdd:0, globalLevel:1,globalMaxLevel:1,
       fish: {unlocked:false, duration:15, baseAntcost:1,  baseBloodcost:5,  baseEffect:1.5, effectText:'increase the waterproduction'},
@@ -46,6 +46,7 @@ export function updateGameTick(){
 }
 // ----------------- Main Game Functions -----------------
 export function collectResource(key, amount) {
+  // only for player buttons
   const res = gameData.resources[key];
   if (!res) return;
 
@@ -60,7 +61,6 @@ export function collectResource(key, amount) {
   // If resource has a cost, scale production by available cost resources
   if (res.cost) {
     let maxAmountByCost = producible; // start with space-limited amount
-
     for (let costRes in res.cost) {
       const available = gameData.resources[costRes].amount;
       const requiredPerUnit = res.cost[costRes];
@@ -91,13 +91,10 @@ export function collectResource(key, amount) {
 
   update_resource();
 }
-
-
 export function recruitAnt(){
   if(getTotalAnts() >= gameData.ants.maxAnts) return alert("Ant limit reached!");
   if(gameData.resources.sugar.amount>=10){ gameData.resources.sugar.amount-=10; gameData.ants.assignedAnts.free++; update_resource(); }
 }
-
 export function buyBuilding(buildingName) {
   const building = gameData.buildings[buildingName];
   if (!building) return alert(`Building "${buildingName}" does not exist!`);
@@ -129,19 +126,7 @@ export function buyBuilding(buildingName) {
   if (building.effect) {
     applyBuildingEffect(buildingName);
   }
-
-  // update button text
-  const btn = document.getElementById(`build${capitalize(buildingName)}Btn`);
-  if (btn) {
-    const costStrings = [];
-    for (const resName in building.baseCost) {
-      const base = building.baseCost[resName];
-      const c = Math.floor(base * Math.pow(building.costMultiplier, building.level));
-      costStrings.push(`${c} ${resName}`);
-    }
-    btn.innerText = `Build ${capitalize(buildingName)} (+${building.effect || 0} ${building.effectText}, Cost: ${costStrings.join(', ')})`;
-  }
-
+  updateBuildingText(buildingName)
   update_resource();
 }
 function applyBuildingEffect(buildingKey) {
@@ -185,8 +170,6 @@ export function resetResourceGains() {
     res.info.loss = 0;
   }
 }
-
-
 export function update_resourcesUI() {
   for (let key in gameData.resources) {
     const res = gameData.resources[key];
@@ -252,10 +235,14 @@ export function update_antsUI() {
       const assigned = gameData.ants.assignedAnts[type];
       const max = gameData.ants.assignedLimits[type];
 
-      // Always show assigned/max (∞ if no limit)
-      const displayMax = (typeof max === "number" && max > 0) ? max : "∞";
-      span.innerText = `${assigned}/${displayMax}`;
-    }
+      let displayMax;
+      if (typeof max === "number" && max > 0) {
+        displayMax = `/${max}`;
+      } else {
+        displayMax = "";
+      }
+      span.innerText = `${assigned}${displayMax}`;
+          }
   });
 
   // Free ants
@@ -265,7 +252,6 @@ export function update_antsUI() {
   // Breeding info
   update_breedingBar();
 }
-
 export function update_breedingBar() {
   const container = document.getElementById("breedingContainer");
   const bar = document.getElementById("breedingBar");
@@ -278,21 +264,16 @@ export function update_breedingBar() {
 
   if (container) container.style.display = "block";
   if (bar) bar.value = gameData.ants.partialAnts || 0;
-  if (percent) percent.innerText = `${Math.floor((gameData.ants.partialAnts || 0) * 100)}%`;
+  if (percent) percent.innerText = `breeding progress: ${Math.floor((gameData.ants.partialAnts || 0) * 100)}%`;
 }
-
 export function update_resource() {
   update_resourcesUI();
   update_antsUI();
   saveGame();
 }
-
 export function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
-
-
-// ----------------- Assign Ants -----------------
 export function adjustAnt(resource, delta){
   if (
   delta > 0 &&
@@ -311,7 +292,6 @@ if (delta > 0 && gameData.sacrifice.globalLevel < gameData.sacrifice.globalMaxLe
 if (delta < 0 && gameData.sacrifice.globalLevel > 0){gameData.sacrifice.globalLevel += delta}
 
 }
-// ----------------- Auto Collect -----------------
 export function autoCollect() {
   const timeFactor = 1 / gameData.gameUpdateRate;
 
@@ -387,8 +367,6 @@ for (let key in netChange) {
 export function getTotalAnts(){
   return Object.values(gameData.ants.assignedAnts).reduce((a, b) => a + b, 0)
 }
-
-// ----------------- Consume Sugar -----------------
 export function consumeSugarAnts(){
   let timeFactor = 1/gameData.gameUpdateRate
   let sugarNeedAnt = 1/gameData.ants.antSugarConsumtion
@@ -427,7 +405,6 @@ export function consumeSugarAnts(){
   }
 
 }
-
 export function breedAnts() {
   // Only allow breeding if research is unlocked
   
@@ -436,23 +413,17 @@ export function breedAnts() {
   const totalFree = gameData.ants.assignedAnts.free;
   
   if (totalFree < 2) return; // need at least 2 free ants
-    
-  // breeding rate = (pairs of free ants) * (1 ant per 30s) * breeding speed
   const ratePerSecond = (Math.floor(totalFree / 2)) / gameData.ants.antsBreedingSpeed;
   const perTick = ratePerSecond / gameData.gameUpdateRate;
     
   if (gameData.ants.maxAnts > getTotalAnts()){
-    
-    const upkeepPerTick = (getTotalAnts()* gameData.ants.antSugarConsumtion*0.1 + (gameData.ants.assignedAnts.free * (1-gameData.ants.antsBreedingCost)*0.1)) / gameData.gameUpdateRate;
-    const safetyReserve = upkeepPerTick * 2;
-  if (gameData.resources.sugar.amount > safetyReserve) {
-      gameData.ants.partialAnts += perTick;
-      const newAnts = Math.floor(gameData.ants.partialAnts);
-      if (newAnts > 0){
-        const space = gameData.ants.maxAnts - getTotalAnts();
-        gameData.ants.assignedAnts.free += Math.min(newAnts, space);
-        gameData.ants.partialAnts -= newAnts; // keep remainder
-      }
+    gameData.ants.partialAnts += perTick;
+    const newAnts = Math.floor(gameData.ants.partialAnts);
+    if (newAnts > 0){
+      const space = gameData.ants.maxAnts - getTotalAnts();
+      gameData.ants.assignedAnts.free += Math.min(newAnts, space);
+      gameData.ants.partialAnts -= newAnts; // keep remainder
+      
     }
   }
 }

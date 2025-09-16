@@ -27,49 +27,60 @@
     
     <!-- Main Tab -->
     <div id="main" class="tab active">
-      <h1>the Sacrifice colony</h1>
+    <h1>the Sacrifice colony</h1>
 
-        <div class="tooltip">
-          <button id="collectWaterBtn" class="main-btn">
-            Collect Water
-          </button>
-          <span class="tooltiptext">Collect 2 water</span>
-        </div>
+    <div class="main-grid">
 
-        <div class="tooltip">
-          <button id="collectSugarBtn" class="main-btn" style="display:none;">
-            Collect Sugar
-          </button>
-          <span class="tooltiptext">Cost 10 water to collect 1 sugar crystal</span>
-        </div>
+  <!-- LEFT COLUMN (all rows for buttons/text) -->
+  <div class="left-column">
+    <div class="grid-row text-line">
+      <span>Collect Resources</span>
+    </div>
 
-        <div class="tooltip">
-          <button id="collectWoodBtn" class="main-btn" style="display:none;">
-            Collect Wood
-          </button>
-          <span class="tooltiptext">Cost 2 water to collect 1 wood splinter</span>
-        </div>
+    <div class="grid-row grid-3">
+      <div class="tooltip" style="display: block;">
+        <button id="collectWaterBtn" class="main-btn">Collect Water</button>
+        <span class="tooltiptext">Collect 2 water</span>
+      </div>
 
-        <br>
+      <div class="tooltip" style="display: block;">
+        <button id="collectSugarBtn" class="main-btn">Collect Sugar</button>
+        <span class="tooltiptext">Cost 10 water to collect 1 sugar crystal</span>
+      </div>
 
-        <div class="tooltip">
-          <button id="recruitAntBtn" class="main-btn" style="display:none;">
-            Recruit Ant
-          </button>
-          <span class="tooltiptext">Cost 10 sugar crystals</span>
-        </div>
-
-      <br>
-
-      <hr class="separator">
-
-      <div id="buildings">
-        <button id="buildAnthutBtn" class="build-btn tooltip" style="display:none;"></button>
-        <button id="buildLumbermillBtn" class="build-btn tooltip" style="display:none;"></button>
-        <button id="buildDeskBtn" class="build-btn tooltip" style="display:none;"></button>
-        <button id="buildStorageroomBtn" class="build-btn tooltip" style="display:none;"></button>
+      <div class="tooltip" style="display: block;">
+        <button id="collectWoodBtn" class="main-btn">Collect Wood</button>
+        <span class="tooltiptext">Cost 2 water to collect 1 wood splinter</span>
       </div>
     </div>
+
+
+    <!-- More left column rows -->
+    <div class="grid-row text-line">
+      <span>Recruit Ants</span>
+    </div>
+    <div class="grid-row grid-3">
+      <button id="recruitAntBtn" class="main-btn tooltip" style="display:none">Recruit Ant
+        <span class="tooltiptext">Cost 10 sugar crystals</span>
+      </button>
+    </div>
+
+    <div class="grid-row text-line">
+      <span>Buildings</span>
+    </div>
+    <div id="buildingsContainer" class="grid-row grid-3"></div>
+  </div>
+
+  <!-- RIGHT COLUMN (event log) -->
+  <div class="event-log">
+    <h2>Event</h2>
+    <div id="eventContent"></div>
+  </div>
+
+</div>
+
+  </div>
+
 
     <!-- Research Tab -->
     <div id="research" class="tab">
@@ -110,7 +121,6 @@
 
       <!-- Breeding progress bar (hidden initially) -->
       <div id="breedingContainer" style="display:none; margin-top:5px;">
-        <label for="breedingBar">Breeding Progress:</label>
         <span id="breedingPercent">0%</span>
       </div>
 
@@ -199,9 +209,6 @@
   </div>
   </div>
   </div>
-
-
-
 
   </div>
     <!-- Stats Tab -->

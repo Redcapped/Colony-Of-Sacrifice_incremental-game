@@ -47,7 +47,7 @@ export const techTree = [
   {
     id:'waterhole 4',
     name:'wait an other waterhole',
-    desc:'Why is this needed? Increase the waterdrops capacity by 100.',
+    desc:'Why is this needed? \n Increase the waterdrops capacity by 100.',
     cost:{water:190},
     prereq:['waterhole 3'],
     effect:()=>{
@@ -189,36 +189,51 @@ export const techTree = [
 ];
 export function initTechTree(){ updateTechs(); }
 
-export function updateTechs(){
+export function updateTechs() {
   const availableDiv = document.getElementById("availableTechs");
   const purchasedDiv = document.getElementById("purchasedTechs");
   availableDiv.innerHTML = "";
   purchasedDiv.innerHTML = "";
 
-  techTree.forEach(tech=>{
-    const prereqMet = tech.prereq.every(p=>gameData.research[p]);
+  techTree.forEach(tech => {
+    const prereqMet = tech.prereq.every(p => gameData.research[p]);
     const purchased = !!gameData.research[tech.id];
 
+    // Create tooltip container
+    const tooltipWrapper = document.createElement("div");
+    tooltipWrapper.className = "tooltip";
+
+    // Create the button
     const btn = document.createElement("button");
     btn.className = "tech-btn";
     btn.innerText = tech.name;
 
-    const tooltip = document.createElement("div");
-    tooltip.className = "tooltip";
-    let costText = Object.entries(tech.cost).map(([res,val])=>`${val} ${res}`).join("\n");
+    // Tooltip span
+    const tooltip = document.createElement("span");
+    tooltip.className = "tooltiptext";
+    let costText = Object.entries(tech.cost)
+      .map(([res, val]) => `${val} ${res}`)
+      .join("\n");
     tooltip.innerText = `${tech.desc}\nCost:\n${costText}`;
-    btn.appendChild(tooltip);
 
+    // Append button and tooltip to wrapper
+    tooltipWrapper.appendChild(btn);
+    tooltipWrapper.appendChild(tooltip);
+
+    // Append to the right container
     if (purchased) {
       btn.disabled = true;
       btn.style.background = "#cfc";
-      purchasedDiv.appendChild(btn);
+      purchasedDiv.appendChild(tooltipWrapper);
     } else if (prereqMet) {
       btn.onclick = () => buyTech(tech.id);
-      availableDiv.appendChild(btn);
+      availableDiv.appendChild(tooltipWrapper);
     }
   });
 }
+
+
+
 
 export function buyTech(id){
   const tech = techTree.find(t=>t.id===id);
