@@ -8,9 +8,9 @@ export function getDefaultGameData() {
       water:  { amount: 0,  max: 25,   prodFactor: 1,     assigned: 'water',    cost: {},           unlocked:true,  info:{gain:0,loss:0}},
       wood:   { amount: 0,  max: 25,   prodFactor: 1,     assigned: 'wood',     cost: {water: 2 },  unlocked:false, info:{gain:0,loss:0}},
       sugar:  { amount: 0,  max: 25,   prodFactor: 0.5,   assigned: 'sugar',    cost: {water: 10},  unlocked:false, info:{gain:0,loss:0}},
-      lumber: { amount: 0,  max: 20,   prodFactor: 1/25,  assigned: 'lumber',   cost: {wood:  25},  unlocked:false, info:{gain:0,loss:0}},
+      lumber: { amount: 0,  max: 20,   prodFactor: 0.05,  assigned: 'lumber',   cost: {wood:  25},  unlocked:false, info:{gain:0,loss:0}},
       stone:  { amount: 0,  max: 25,   prodFactor: 1,     assigned: 'stone',    cost: {},           unlocked:false, info:{gain:0,loss:0}},
-      science:{ amount: 0,  max: 100,  prodFactor: 0.1,   assigned: 'science',  cost: {sugar: 3 },  unlocked:false, info:{gain:0,loss:0}},
+      science:{ amount: 0,  max: 50,   prodFactor: 0.2,   assigned: 'science',  cost: {sugar: 2 },  unlocked:false, info:{gain:0,loss:0}},
       blood:  { amount: 0,  max: 5,    prodFactor: 0.01,  assigned: 'blood',    cost: {},           unlocked:false, info:{gain:0,loss:0}}},
     ants:{
       recruitAntUnlocked:false,maxAnts: 10,
@@ -183,42 +183,71 @@ export function update_resourcesUI() {
       bar.value = res.amount;
       bar.max = res.max;
     }
-    if (res.info){
+    
+    if (res.info) {
       const gain = res.info.gain * gameData.gameUpdateRate;
       const loss = (res.info.loss || 0) * gameData.gameUpdateRate;
       var netgain = gain - loss;
-      var color = "gray";
-      var timeText = "∞";
+      
+      // Calculate what ants WANT to produce (ideal production)
+      const antsAssigned = gameData.ants.assignedAnts[res.assigned] || 0;
+      const idealProduction = antsAssigned * res.prodFactor;
+      
+      // Debug logging
+      //console.log(`${key}: ants=${antsAssigned}, ideal=${idealProduction}, gain=${gain}, loss=${loss}, amount=${res.amount}, max=${res.max}`);
+      
+      let color = "gray";
+      let timeText = "";
+      let productionInfo = "";
+
       if (res.amount >= res.max) {
-        timeText = "full";
+        // Storage is full
+        timeText = "FULL";
         color = "gray";
-      } else if (res.amount <= 0.5){
-
-        color = "gray";
-        netgain = loss
-      }
-      else if (netgain > 0) {
-        const time = (res.max - res.amount) / netgain;
-        timeText = `Fill in ${Math.ceil(time)}s`;
-        color = "green";
-      } else if (netgain < 0) {
-        const time = res.amount / Math.abs(netgain);
-        timeText = `Empty in ${Math.ceil(time)}s`;
+        
+        if (idealProduction > gain) {
+          const overproduction = idealProduction - gain;
+          productionInfo = ` (wasting ${overproduction.toFixed(2)}/s)`;
+          netgain = overproduction
+        }
+        
+      } else if (res.amount <= 0.1) {
+        // Storage is empty/very low
+        timeText = "EMPTY";
         color = "red";
+        
+        if (idealProduction < Math.abs(loss)) {
+          const underproduction = Math.abs(loss) - idealProduction;
+          productionInfo = ` (need +${underproduction.toFixed(2)}/s more)`;
+          netgain = -underproduction
+        }
+        
+      } else {
+        // Normal operation
+        if (netgain > 0) {
+          const timeToFull = (res.max - res.amount) / netgain;
+          timeText = `Full in ${Math.ceil(timeToFull)}s`;
+          color = "green";
+        } else if (netgain < 0) {
+          const timeToEmpty = res.amount / Math.abs(netgain);
+          timeText = `Empty in ${Math.ceil(timeToEmpty)}s`;
+          color = "red";
+        } else {
+          timeText = "Stable";
+          color = "gray";
+        }
+      }
+
+      if (info) {
+        info.innerText = `+${gain.toFixed(2)}/s -${loss.toFixed(2)}/s = ${netgain.toFixed(2)}/s | ${timeText}${productionInfo}`;
+        info.style.color = color;
+      }
+      
+      if (net) {
+        net.innerText = netgain.toFixed(2);
+        net.style.color = color;
       }
     }
-    if (info) {
-
-      info.innerText = `+${gain.toFixed(2)}/s ${loss.toFixed(2)}/s = ${netgain.toFixed(2)}/s | ${timeText}`;
-      
-      info.style.color = color;
-      
-    }
-    if (net){
-      net.innerText = netgain.toFixed(2);
-      net.style.color = color;
-    }
-
   }
 }
 export function update_antsUI() {
@@ -293,77 +322,90 @@ if (delta < 0 && gameData.sacrifice.globalLevel > 0){gameData.sacrifice.globalLe
 
 }
 export function autoCollect() {
-  const timeFactor = 1 / gameData.gameUpdateRate;
+    const timeFactor = 1 / gameData.gameUpdateRate;
+    const resources = gameData.resources;
 
-  // Step 1: Gather production requests
-  let productionRequests = [];
-  for (let key in gameData.resources) {
-    const res = gameData.resources[key];
-    const antsAssigned = gameData.ants.assignedAnts[res.assigned] || 0;
-
-    if (antsAssigned > 0) {
-      const potentialProduction = antsAssigned * (res.prodFactor || 1) * timeFactor;
-      productionRequests.push({
-        key,
-        res,
-        requested: potentialProduction
-      });
+    // Calculate dependency depth for each resource
+    const depths = {};
+    
+    function calculateDepth(resKey) {
+        if (depths[resKey] !== undefined) return depths[resKey];
+        
+        const res = resources[resKey];
+        if (!res || !res.unlocked) {
+            depths[resKey] = 0;
+            return 0;
+        }
+        
+        let maxDepth = 0;
+        if (res.cost && Object.keys(res.cost).length > 0) {
+            for (const inputRes in res.cost) {
+                maxDepth = Math.max(maxDepth, 1 + calculateDepth(inputRes));
+            }
+        }
+        
+        depths[resKey] = maxDepth;
+        return maxDepth;
     }
-  }
-
- // Step 2: Calculate net changes without applying
-const netChange = {}; // key -> { gain: x, loss: y }
-
-productionRequests.forEach(req => {
-  const res = req.res;
-  let produceAmount = req.requested;
-
-  // Scaling by cost and space
-  let scalingFactor = 1;
-  if (res.cost) {
-    for (let costRes in res.cost) {
-      const available = gameData.resources[costRes]?.amount || 0;
-      const spaceLeft = res.max - res.amount;
-      scalingFactor = Math.min(
-        scalingFactor,
-        available / (res.cost[costRes] * produceAmount),
-        spaceLeft / produceAmount
-      );
+    
+    // Calculate depths for all unlocked resources
+    for (const resKey in resources) {
+        if (resources[resKey] && resources[resKey].unlocked) {
+            calculateDepth(resKey);
+        }
     }
-  }
+    
+    // Sort by depth (highest depth first - most complex resources first)
+    const processOrder = Object.keys(resources)
+        .filter(key => resources[key] && resources[key].unlocked)
+        .sort((a, b) => depths[b] - depths[a]);
+    
+    for (const resKey of processOrder) {
+        const res = resources[resKey];
+        if (!res || !res.unlocked) continue;
 
-  produceAmount *= scalingFactor;
-  if (produceAmount <= 0) return;
+        const antsAssigned = gameData.ants.assignedAnts[res.assigned] || 0;
+        if (antsAssigned === 0) continue;
 
-  // --- Track gains ---
-  if (!netChange[req.key]) netChange[req.key] = { gain: 0, loss: 0 };
-  netChange[req.key].gain += produceAmount;
+        let maxProduction = antsAssigned * res.prodFactor * timeFactor;
+        
+        // If resource needs inputs, check availability
+        if (res.cost && Object.keys(res.cost).length > 0) {
+            for (const inputRes in res.cost) {
+                const needed = res.cost[inputRes];
+                const available = resources[inputRes].amount;
+                const maxFromInput = available / needed;
+                maxProduction = Math.min(maxProduction, maxFromInput);
+            }
+        }
 
-  // --- Track costs (losses) ---
-  if (res.cost) {
-    for (let costRes in res.cost) {
-      const costAmount = res.cost[costRes] * produceAmount;
-      if (!netChange[costRes]) netChange[costRes] = { gain: 0, loss: 0 };
-      netChange[costRes].loss += costAmount;
+        // Check storage space
+        const spaceLeft = res.max - res.amount;
+        const actualProduction = Math.min(maxProduction, spaceLeft);
+        
+        if (actualProduction > 0) {
+            // Consume inputs
+            if (res.cost && Object.keys(res.cost).length > 0) {
+                for (const inputRes in res.cost) {
+                    const consumed = actualProduction * res.cost[inputRes];
+                    resources[inputRes].amount -= consumed;
+                    
+                    // Track for UI
+                    if (!resources[inputRes].info) resources[inputRes].info = { gain: 0, loss: 0 };
+                    resources[inputRes].info.loss += consumed;
+                }
+            }
+
+            // Add production
+            res.amount += actualProduction;
+            
+            // Track for UI
+            if (!res.info) res.info = { gain: 0, loss: 0 };
+            res.info.gain += actualProduction;
+        }
     }
-  }
-});
-
-// Step 3: Apply net changes
-for (let key in netChange) {
-  const res = gameData.resources[key];
-  if (!res) continue;
-
-  const change = netChange[key].gain - netChange[key].loss;
-
-  // Update amount
-  res.amount = Math.min(res.max, Math.max(0, res.amount + change));
-
-  // Update info
-  res.info.gain += netChange[key].gain;
-  res.info.loss += netChange[key].loss;
 }
-}
+
 export function getTotalAnts(){
   return Object.values(gameData.ants.assignedAnts).reduce((a, b) => a + b, 0)
 }

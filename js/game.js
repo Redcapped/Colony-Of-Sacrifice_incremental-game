@@ -52,7 +52,7 @@ export function update_unlocks() {
 
     const span = document.getElementById(`build${capitalize(key)}Tooltip`);
     if (!span) continue;
-    const wrapper = tooltip.parentElement;
+    const wrapper = span.parentElement;
     if (wrapper){wrapper.style.display = "block";}
     
     updateBuildingText(key)    
