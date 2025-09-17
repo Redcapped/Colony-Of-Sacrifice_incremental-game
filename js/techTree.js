@@ -5,8 +5,8 @@ import { update_unlocks,buildResourceUI,buildAntUI } from './game.js';
 export const techTree = [
   {
     id:'sugar',
-    name:'start searching for sugar',
-    desc:'unlock the abilty to search for sugar',
+    name:'What is this white stuff',
+    desc:'Unlock the ability to search for sugar on the main tab',
     cost:{water:20},
     prereq:[],
     effect:()=>{
@@ -15,7 +15,7 @@ export const techTree = [
       update_resourcesUI(); }
   },
   {
-    id:'waterhole',
+    id:'waterhole 1',
     name:'Basic Understanding waterstorage',
     desc:'Increase the water capacity by 25.',
     cost:{water:20},
@@ -29,7 +29,7 @@ export const techTree = [
     name:'Better Understanding waterstorage',
     desc:'Increase the water capacity by 50.',
     cost:{water:45},
-    prereq:['waterhole'],
+    prereq:['waterhole 1'],
     effect:()=>{
       gameData.resources.water.max += 50;
       update_resourcesUI(); }
@@ -59,7 +59,7 @@ export const techTree = [
     name:'What are these brown rods?',
     desc:'Unlock wood collection',
     cost:{water:35},
-    prereq:['waterhole','pheromones'],
+    prereq:['waterhole 1','pheromones'],
     effect:()=>{
       gameData.resources.wood.unlocked = true;
       update_unlocks();
@@ -69,16 +69,16 @@ export const techTree = [
     {
     id:'waterProd 1',
     name:'What if we make bowls of wood',
-    desc:'inceases the speed the ants collect water by 20%',
+    desc:'inceases the speed the ants collect water by 25%',
     cost:{water:15,wood:25},
     prereq:['woodUnlock'],
     effect:()=>{
-      gameData.resources.water.prodFactor *= 1.2;
+      gameData.resources.water.prodFactor *= 1.25;
       update_resourcesUI()}
   },
   {
     id:'pheromones',
-    name:'🐜 Basic Understanding of Pheromones',
+    name:'Basic Understanding of Pheromones',
     desc:'Unlocks the ability to recruit ants.',
     cost:{sugar:5},
     prereq:['sugar'],
@@ -86,8 +86,8 @@ export const techTree = [
   },
   {
     id:'breeding',
-    name:'🐜 Better Understanding of Pheromones',
-    desc:'Unlocks the ability let the ants breed. Only ants with free time breed. the breeding ants cost 1.25 times as much sugar and every pair gains a new ant every 10 seconds',
+    name:'Better Understanding of Pheromones',
+    desc:'Free ants create new ants. <br> Every ant pair makes a new ant every 64 seconds for 8 sugar.',
     cost:{sugar:20},
     prereq:['anthutTech'],
     effect:()=>{ gameData.ants.breedingUnlocked = true;
@@ -97,8 +97,8 @@ export const techTree = [
   
   {
     id:'anthutTech',
-    name:'Outside home for ants',
-    desc:'Allows building Anthill to increase max ants.',
+    name:'A home for ants',
+    desc:'Allows building anthill to increase max ants.',
     cost:{sugar:20, wood:10},
     prereq:['pheromones','woodUnlock'],
     effect:()=>{ gameData.buildings.anthut.unlocked = true;
@@ -109,7 +109,7 @@ export const techTree = [
   {
   id: 'lumberjackUnlock',
   name: 'the termite life',
-  desc: 'Unlock the ability to create lumber. Only ants assigned as Lumberjacks ants can produce this resource.',
+  desc: 'The ants learn to make lumber. They will need a place to make more',
   cost: { wood: 25 },
   prereq: ['woodUnlock'],
   effect: () => {
@@ -120,8 +120,8 @@ export const techTree = [
   },
   {
     id:'cheaperSugar',
-    name:'building a bridge to a closer sugar source',
-    desc:'decreases the cost of sugar by 1 water',
+    name:'Building a bridge',
+    desc:'The ants make a faster way to the sugar. <br> Decreases the cost of sugar by 1 water',
     cost:{lumber:10},
     prereq:['lumberjackUnlock'],
     effect:()=>{ gameData.resources.sugar.cost = {water:gameData.resources.sugar.cost['water']-1},update_unlocks(); }
@@ -156,6 +156,7 @@ export const techTree = [
   prereq: ['scienceAnt','breeding'], 
   effect: () => {
     gameData.sacrifice.unlocked = true;
+    gameData.sacrifice.types.ant.unlocked = true;
     gameData.resources.blood.unlocked = true;
     buildResourceUI();
     update_unlocks();}
@@ -167,11 +168,21 @@ export const techTree = [
   cost: { science: 50 },
   prereq: ['sacrificeAltar 1'], 
   effect: () => {
-    gameData.sacrifice.fish.unlocked = true;
+    gameData.sacrifice.types.fish.unlocked = true;
     buildResourceUI();
     update_unlocks();}
   },
-
+  {
+  id: 'sacrificeOwl 1',
+  name: 'sacrifice to the Owl',
+  desc: 'Unlock the sacrifice to the Owl',
+  cost: { science: 50 },
+  prereq: ['sacrificeAltar 2'], 
+  effect: () => {
+    gameData.sacrifice.types.fish.unlocked = true;
+    buildResourceUI();
+    update_unlocks();}
+  },
   {
   id: 'bloodpit 1',
   name: 'What to do with all the blood',
@@ -214,7 +225,7 @@ export function updateTechs() {
     let costText = Object.entries(tech.cost)
       .map(([res, val]) => `${val} ${res}`)
       .join("\n");
-    tooltip.innerText = `${tech.desc}\nCost:\n${costText}`;
+    tooltip.innerHTML = `${tech.desc}<br><hr>Cost:<br>${costText}`;
 
     // Append button and tooltip to wrapper
     tooltipWrapper.appendChild(btn);

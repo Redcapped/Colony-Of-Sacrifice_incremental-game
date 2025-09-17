@@ -5,13 +5,13 @@ export function getDefaultGameData() {
   return {
     gameUpdateRate:5,
     resources:{
-      water:  { amount: 0,  max: 25,   prodFactor: 1,     assigned: 'water',    cost: {},           unlocked:true,  info:{gain:0,loss:0}},
-      wood:   { amount: 0,  max: 25,   prodFactor: 1,     assigned: 'wood',     cost: {water: 2 },  unlocked:false, info:{gain:0,loss:0}},
-      sugar:  { amount: 0,  max: 25,   prodFactor: 0.5,   assigned: 'sugar',    cost: {water: 10},  unlocked:false, info:{gain:0,loss:0}},
-      lumber: { amount: 0,  max: 20,   prodFactor: 0.05,  assigned: 'lumber',   cost: {wood:  25},  unlocked:false, info:{gain:0,loss:0}},
-      stone:  { amount: 0,  max: 25,   prodFactor: 1,     assigned: 'stone',    cost: {},           unlocked:false, info:{gain:0,loss:0}},
-      science:{ amount: 0,  max: 50,   prodFactor: 0.2,   assigned: 'science',  cost: {sugar: 2 },  unlocked:false, info:{gain:0,loss:0}},
-      blood:  { amount: 0,  max: 5,    prodFactor: 0.01,  assigned: 'blood',    cost: {},           unlocked:false, info:{gain:0,loss:0}}},
+      water:  { amount: 0,  max: 25,   prodFactor: 1,     assigned: 'water',    cost: {},           unlocked:true,  info:{gain:0,loss:0}, bonusProdAdd:0, bonusProdMul:1, bonusMaxAdd:0,bonusMaxMul:1},
+      wood:   { amount: 0,  max: 25,   prodFactor: 1,     assigned: 'wood',     cost: {water: 2 },  unlocked:false, info:{gain:0,loss:0}, bonusProdAdd:0, bonusProdMul:1, bonusMaxAdd:0,bonusMaxMul:1},
+      sugar:  { amount: 0,  max: 25,   prodFactor: 0.5,   assigned: 'sugar',    cost: {water: 10},  unlocked:false, info:{gain:0,loss:0}, bonusProdAdd:0, bonusProdMul:1, bonusMaxAdd:0,bonusMaxMul:1},
+      lumber: { amount: 0,  max: 20,   prodFactor: 0.05,  assigned: 'lumber',   cost: {wood:  25},  unlocked:false, info:{gain:0,loss:0}, bonusProdAdd:0, bonusProdMul:1, bonusMaxAdd:0,bonusMaxMul:1},
+      stone:  { amount: 0,  max: 25,   prodFactor: 1,     assigned: 'stone',    cost: {},           unlocked:false, info:{gain:0,loss:0}, bonusProdAdd:0, bonusProdMul:1, bonusMaxAdd:0,bonusMaxMul:1},
+      science:{ amount: 0,  max: 50,   prodFactor: 0.2,   assigned: 'science',  cost: {sugar: 2 },  unlocked:false, info:{gain:0,loss:0}, bonusProdAdd:0, bonusProdMul:1, bonusMaxAdd:0,bonusMaxMul:1},
+      blood:  { amount: 0,  max: 5,    prodFactor: 0.01,  assigned: 'blood',    cost: {},           unlocked:false, info:{gain:0,loss:0}, bonusProdAdd:0, bonusProdMul:1, bonusMaxAdd:0,bonusMaxMul:1}},
     ants:{
       recruitAntUnlocked:false,maxAnts: 10,
       assignedAnts:   { free: 0, water: 0, wood: 0, sugar: 0 ,lumber:0,stone:0,science:0},
@@ -19,15 +19,17 @@ export function getDefaultGameData() {
       antSugarConsumtion:20,
       breedingUnlocked:false , partialAnts: 0, antsBreedingSpeed:64, antsBreedingCost:8},
     buildings:{
-      anthut:     {unlocked: false, level: 0 , costMultiplier: 1.25,  effect:2,   baseCost:{'wood':   10}, effectText:'adds max ants:', tooltipText:'basic place for an ant to live \n ------------- \n'},
-      lumbermill: {unlocked: false, level: 0 , costMultiplier: 2,     effect:1,   baseCost:{'wood':   10}, effectText:'adds max lumber ants:',tooltipText:'bla bla bla'},
-      desk:       {unlocked: false, level: 0 , costMultiplier: 2.5,   effect:1,   baseCost:{'lumber': 2 }, effectText:'adds max science ants:',tooltipText:'bla bla bla'},
-      storageroom:{unlocked: false, level: 0 , costMultiplier: 1.5,   effect:10,  baseCost:{'lumber': 5 }, effectText:'sugar/wood:',tooltipText:'bla bla bla'}
+      anthut:     {unlocked: false, level: 0 , costMultiplier: 1.25,  effect:2,   baseCost:{'wood':   10}, effectText:'adds max ants:', tooltipText:'Basic place for an ant to live \n ------------- \n'},
+      lumbermill: {unlocked: false, level: 0 , costMultiplier: 2,     effect:1,   baseCost:{'wood':   10}, effectText:'adds max lumber ants:',tooltipText:'More places for lumber ants to work \n ------------- \n'},
+      desk:       {unlocked: false, level: 0 , costMultiplier: 2.5,   effect:1,   baseCost:{'lumber': 2 }, effectText:'adds max science ants:',tooltipText:'More places for science ants to work \n ------------- \n'},
+      storageroom:{unlocked: false, level: 0 , costMultiplier: 1.5,   effect:10,  baseCost:{'lumber': 5 }, effectText:'sugar/wood:',tooltipText:'Basic place for ants to put stuff \n ------------- \n'}
       },
-    sacrifice:{unlocked:false, durationMult:1, durationAdd:0, globalLevel:1,globalMaxLevel:1,
-      fish: {unlocked:false, duration:15, baseAntcost:1,  baseBloodcost:5,  baseEffect:1.5, effectText:'increase the waterproduction'},
-      owl:  {unlocked:false, duration:20, baseAntcost:2,  baseBloodcost:15, baseEffect:2,   effectText:'increase the max knowlage'}
-
+    sacrifice:{unlocked:false, cooldownMult:1, cooldownAdd:0 ,durationMult:1, durationAdd:0, globalLevel:1,globalMaxLevel:1,
+      types:{
+        ant:  {unlocked:false, cooldown:5 ,  duration:5,  baseAntcost:1,  baseBloodcost:0,  baseEffect:2,   effectText:'blood and sugar',                             lastUse:0,isActive: false,isOnCooldown:false,tooltipText:'Basic place for an ant to live \n ------------- \n'},
+        fish: {unlocked:false, cooldown:60 , duration:60, baseAntcost:1,  baseBloodcost:5,  baseEffect:1.2, effectText:'times increase the waterproduction',lastUse:0,isActive: false,isOnCooldown:false,tooltipText:'Basic place for an ant to live \n ------------- \n'},
+        owl:  {unlocked:false, cooldown:120 , duration:120, baseAntcost:2,  baseBloodcost:15, baseEffect:2,   effectText:'times increase the max knowlage',   lastUse:0,isActive: false,isOnCooldown:false,tooltipText:'Basic place for an ant to live \n ------------- \n'}
+      }
 
     },
     research: {}
@@ -44,14 +46,119 @@ export function updateGameTick(){
   update_resource();
 
 }
-// ----------------- Main Game Functions -----------------
+
+export function updateSacrificeUI() {
+  // Check all active cooldowns and update buttons if needed
+  for (const sacName in gameData.sacrifice.types) {
+    const btn = document.getElementById(`btnSacrifice${capitalize(sacName)}`);
+    const tooltip = document.getElementById(`sac${capitalize(sacName)}Tooltip`);    
+
+    if (!btn | !tooltip) return;
+    const sacrifice = gameData.sacrifice.types[sacName]
+    const currentTime = Date.now();
+    const totalCooldown =  (sacrifice.cooldown + gameData.sacrifice.cooldownAdd) * gameData.sacrifice.cooldownMult*1000;
+    const total_duration = (sacrifice.duration + gameData.sacrifice.durationAdd) * gameData.sacrifice.durationMult*1000;
+    
+    // neem het minste tussen de cooldown en de effect duration
+    const timeLefteffect = Math.ceil((sacrifice.lastUsed + total_duration - currentTime) / 1000);
+    const timeLeftCooldown = Math.max(Math.ceil((sacrifice.lastUsed + totalCooldown - currentTime) / 1000),timeLefteffect);
+    //cheak of sacrifice van cooldown kan. als de effect dan nog bezig is zet het effect ook uit. effect mag niet langer dan cooldown
+    if (timeLeftCooldown <= 0 && sacrifice.isOnCooldown){
+      sacrifice.isOnCooldown = false
+      btn.disabled = false;
+      if (sacrifice.isActive){
+        sacrifice.isActive = false
+        updateSacrificeEffect(sacName)
+      }
+    }
+    //anders is de knop nog disabeld
+    else if(sacrifice.isOnCooldown){
+      btn.disabled = true;
+      btn.textContent = `${sacName} (${timeLeftCooldown}s)`;
+      tooltip.innerText = `not useable for ${timeLeftCooldown} seconds \n ${sacrifice.tooltipText} sac ${sacrifice.baseAntcost * gameData.sacrifice.globalLevel} ant(s) to gain ${sacrifice.baseEffect} ${sacrifice.effectText}`;
+    }
+    //effect is voorbij
+    if (timeLefteffect <= 0 && sacrifice.isActive){
+      sacrifice.isActive = false
+      updateSacrificeEffect(sacName)
+    }
+      
+    if(sacrifice.isActive){
+      tooltip.innerText = `not useable for ${timeLeftCooldown} seconds \n effect last for ${timeLefteffect} \n ${sacrifice.tooltipText} sac ${sacrifice.baseAntcost * gameData.sacrifice.globalLevel} ant(s) to gain ${sacrifice.baseEffect} ${sacrifice.effectText}`;
+    }
+    if (!sacrifice.isOnCooldown){
+      btn.textContent = sacName;
+      tooltip.innerText = `${sacrifice.tooltipText} sac ${sacrifice.baseAntcost * gameData.sacrifice.globalLevel} ant(s) and ${sacrifice.baseBloodcost * gameData.sacrifice.globalLevel} blood \n to gain ${sacrifice.baseEffect * gameData.sacrifice.globalLevel} ${sacrifice.effectText}`;
+    }      
+    }
+}
+export function performSacrifice(sacrificeType) {
+  const sacrifice = gameData.sacrifice.types[sacrificeType];
+  if (!sacrifice || !sacrifice.unlocked) {
+    alert(`${capitalize(sacrificeType)} is not available!`);
+    return false;
+  }
+  // Check ants
+  if (sacrifice.baseAntcost * gameData.sacrifice.globalLevel > gameData.ants.assignedAnts.free) {
+      alert(`not the needed amount of ants`);
+      return false;
+    }
+  // cheak blood
+  if (sacrifice.baseBloodcost * gameData.sacrifice.globalLevel > gameData.resources.blood.amount) {
+      alert(`not the needed amount of blood`);
+      return false;
+    }
+
+  // remove costs
+  gameData.ants.assignedAnts.free -= sacrifice.baseAntcost * gameData.sacrifice.globalLevel
+  gameData.resources.blood.amount -= sacrifice.baseBloodcost * gameData.sacrifice.globalLevel
+  // Start cooldown
+  const currentTime = Date.now();
+  sacrifice.lastUsed = currentTime;
+  sacrifice.isActive = true;
+  sacrifice.isOnCooldown = true;
+  updateSacrificeEffect(sacrificeType)
+  const btn = document.getElementById(`btnSacrifice${capitalize(sacrificeType)}`);
+  btn.disabled = true;
+  // Update resources/effects
+  update_resource();
+  updateSacrificeUI();
+  return true;
+}
+function updateSacrificeEffect(sacrificeType) {
+  const sacrifice = gameData.sacrifice.types[sacrificeType]
+  const factor = sacrifice.isActive ? 1 : -1
+  switch (sacrificeType) {
+    case "ant":
+      if (factor == 1){
+      gameData.resources.blood.amount = Math.min(gameData.resources.blood.amount+2,gameData.resources.blood.max);
+      gameData.resources.sugar.amount = Math.min(gameData.resources.sugar.amount+2,gameData.resources.sugar .max)}
+      break;
+
+    case "owl":
+      var added_value = gameData.resources.science.max * sacrifice.baseEffect - gameData.resources.science.max;
+      gameData.resources.science.bonusMaxAdd += added_value * factor;
+      break;
+
+    case "fish":
+      var added_value = gameData.resources.water.prodFactor * sacrifice.baseEffect - gameData.resources.water.prodFactor;
+      gameData.resources.water.bonusProdAdd += added_value * factor
+      break;
+
+    default:
+      console.warn(`No effect defined for sacrifice type: ${sacrificeType}`);
+      break;
+  }
+}
 export function collectResource(key, amount) {
   // only for player buttons
+  
   const res = gameData.resources[key];
+  const resStoreageMax = maxStorageResource(key)
   if (!res) return;
 
   // Calculate how much can actually be produced (storage limit)
-  const spaceLeft = res.max - res.amount;
+  const spaceLeft = resStoreageMax - res.amount;
   if (key == 'water'){
     amount = amount * 2
   }
@@ -177,11 +284,11 @@ export function update_resourcesUI() {
     const bar = document.getElementById(key + "Bar");
     const info = document.getElementById(key + "Info");
     const net = document.getElementById(key + "Net");
-
-    if (span) span.innerText = `${Math.floor(res.amount)}/${res.max}`;
+    const resStoreageMax = maxStorageResource(key)
+    if (span) span.innerText = `${Math.floor(res.amount)}/${resStoreageMax}`;
     if (bar) {
       bar.value = res.amount;
-      bar.max = res.max;
+      bar.max = resStoreageMax;
     }
     
     if (res.info) {
@@ -190,17 +297,16 @@ export function update_resourcesUI() {
       var netgain = gain - loss;
       
       // Calculate what ants WANT to produce (ideal production)
-      const antsAssigned = gameData.ants.assignedAnts[res.assigned] || 0;
-      const idealProduction = antsAssigned * res.prodFactor;
+      const idealProduction = maxProductionResource(key) * gameData.gameUpdateRate;
       
       // Debug logging
-      //console.log(`${key}: ants=${antsAssigned}, ideal=${idealProduction}, gain=${gain}, loss=${loss}, amount=${res.amount}, max=${res.max}`);
+      console.log(`${key}:  ideal=${idealProduction}, gain=${gain}, loss=${loss}, amount=${res.amount}, max=${res.max}`);
       
       let color = "gray";
       let timeText = "";
       let productionInfo = "";
 
-      if (res.amount >= res.max) {
+      if (res.amount >= resStoreageMax) {
         // Storage is full
         timeText = "FULL";
         color = "gray";
@@ -225,7 +331,7 @@ export function update_resourcesUI() {
       } else {
         // Normal operation
         if (netgain > 0) {
-          const timeToFull = (res.max - res.amount) / netgain;
+          const timeToFull = (resStoreageMax - res.amount) / netgain;
           timeText = `Full in ${Math.ceil(timeToFull)}s`;
           color = "green";
         } else if (netgain < 0) {
@@ -298,6 +404,7 @@ export function update_breedingBar() {
 export function update_resource() {
   update_resourcesUI();
   update_antsUI();
+  updateSacrificeUI();
   saveGame();
 }
 export function capitalize(str) {
@@ -321,9 +428,21 @@ if (delta > 0 && gameData.sacrifice.globalLevel < gameData.sacrifice.globalMaxLe
 if (delta < 0 && gameData.sacrifice.globalLevel > 0){gameData.sacrifice.globalLevel += delta}
 
 }
+function maxProductionResource(resource){
+  const res = gameData.resources[resource]
+  const timeFactor = 1 / gameData.gameUpdateRate;
+  const antsAssigned = gameData.ants.assignedAnts[resource] || 0;
+  const maxProductionValue = antsAssigned * (res.prodFactor+ res.bonusProdAdd) * res.bonusProdMul * timeFactor
+  return maxProductionValue
+}
+function maxStorageResource(resource){
+  const res = gameData.resources[resource]
+  const maxStorageValue = (res.max + res.bonusMaxAdd)* res.bonusMaxMul
+  return maxStorageValue
+}
 export function autoCollect() {
-    const timeFactor = 1 / gameData.gameUpdateRate;
     const resources = gameData.resources;
+    
 
     // Calculate dependency depth for each resource
     const depths = {};
@@ -367,7 +486,7 @@ export function autoCollect() {
         const antsAssigned = gameData.ants.assignedAnts[res.assigned] || 0;
         if (antsAssigned === 0) continue;
 
-        let maxProduction = antsAssigned * res.prodFactor * timeFactor;
+        let maxProduction = maxProductionResource(resKey);
         
         // If resource needs inputs, check availability
         if (res.cost && Object.keys(res.cost).length > 0) {
@@ -380,7 +499,8 @@ export function autoCollect() {
         }
 
         // Check storage space
-        const spaceLeft = res.max - res.amount;
+        const resStoreageMax = maxStorageResource(resKey)
+        const spaceLeft = resStoreageMax - res.amount;
         const actualProduction = Math.min(maxProduction, spaceLeft);
         
         if (actualProduction > 0) {
@@ -405,7 +525,6 @@ export function autoCollect() {
         }
     }
 }
-
 export function getTotalAnts(){
   return Object.values(gameData.ants.assignedAnts).reduce((a, b) => a + b, 0)
 }
@@ -469,7 +588,6 @@ export function breedAnts() {
     }
   }
 }
-
 export function saveGame() {
   localStorage.setItem('Colony_of_sacrifce', JSON.stringify(gameData));
 }

@@ -1,5 +1,5 @@
 // ----------------- Imports -----------------
-import {getDefaultGameData, gameData, saveGame, capitalize, collectResource,update_resource, adjustSacLevel,adjustAnt, recruitAnt, buyBuilding, updateGameTick,getTotalAnts} from './coregame.js';
+import {getDefaultGameData, gameData, performSacrifice,saveGame, capitalize, collectResource,update_resource, adjustSacLevel,adjustAnt, recruitAnt, buyBuilding, updateGameTick,getTotalAnts} from './coregame.js';
 import { initTechTree } from './techTree.js';
 
 // ----------------- Tabs -----------------
@@ -95,15 +95,16 @@ export function update_unlocks() {
   if (sacrificePanel) {
     sacrificePanel.style.display = gameData.sacrifice.unlocked ? "block" : "none";
   }
-  const sacrificeBloodContainer = document.getElementById("sacrificeBloodContainer");
-  if (sacrificeBloodContainer) {
-  sacrificeBloodContainer.style.display =gameData.sacrifice.unlocked ? "block" : "none";
+  for (const sacName in gameData.sacrifice.types) {
+  const sacrifice = gameData.sacrifice.types[sacName];
+  const sacEl = document.getElementById(`sac${capitalize(sacName)}Tooltip`);
 
-  const btnSacrificeAnt = document.getElementById("btnSacrificeAnt");
-  if (btnSacrificeAnt) {
-    btnSacrificeAnt.disabled = gameData.ants.assignedAnts.free <= 0;
+  if (sacEl) {
+    const wrapper = sacEl.parentElement;
+    if (wrapper){wrapper.style.display = sacrifice.unlocked ? "block" : "none";}
   }
 }
+
   // ---------------- Resource UI ----------------
   update_resource();
 }
@@ -117,6 +118,7 @@ export function initGame() {
   buildAntUI();
   buildStatUI();
   buildBuildingUI();
+  buildSacrificeUI();
 
   // ----------------- Intervals -----------------
   setInterval(updateGameTick, 1000 / gameData.gameUpdateRate);
@@ -220,6 +222,7 @@ export function buildResourceUI() {
     section.appendChild(row);
   }
 }
+
 export function buildAntUI() {
   const section = document.getElementById("antSection");
   section.innerHTML = ""; // clear old content
@@ -352,6 +355,48 @@ function buildStatUI() {
     buildingTbody.appendChild(row);
   }
 }
+export function buildSacrificeUI() {
+  const container = document.getElementById("sacrificeContainer");
+  if (!container) return; // safety check
+  const sacrifices = gameData.sacrifice.types;
+
+  for (const key in sacrifices) {
+    const sacrifice = sacrifices[key];
+    if (!sacrifice) continue;
+
+    // Tooltip wrapper
+    const tooltipWrapper = document.createElement("div");
+    tooltipWrapper.className = "tooltip";
+    tooltipWrapper.style.display = sacrifice.unlocked ? "block" : "none";
+
+    // Button
+    const btn = document.createElement("button");
+    btn.className = "sacrifice-btn";
+    btn.id = `btnSacrifice${capitalize(key)}`;
+    btn.textContent = sacrifice.title || capitalize(key);
+
+    // Click listener for performing sacrifice
+    btn.addEventListener("click", () => performSacrifice(key));
+
+    // Tooltip span
+    const tooltipText = document.createElement("span");
+    tooltipText.className = "tooltiptext";
+    tooltipText.id = `sac${capitalize(key)}Tooltip`;
+    tooltipText.textContent = sacrifice.tooltipText || "";
+
+    // Assemble button + tooltip
+    tooltipWrapper.appendChild(btn);
+    tooltipWrapper.appendChild(tooltipText);
+    container.appendChild(tooltipWrapper);
+
+    // Info (always visible, like your HTML mockup)
+    const infoDiv = document.createElement("div");
+    infoDiv.id = `sacrifice${capitalize(key)}Info`;
+    infoDiv.innerHTML = `boo`;
+    infoDiv.style.display = sacrifice.unlocked ? "block" : "none";
+    container.appendChild(infoDiv);
+  }
+}
 function buildBuildingUI() {
   const container = document.getElementById("buildingsContainer");
   if (!container) return; // safety check
@@ -428,8 +473,6 @@ function enableTooltips() {
     });
   });
 }
-
-
 export function resetGame() {
 
   if (!confirm("Are you sure you want to reset your game?")) return;
@@ -443,7 +486,6 @@ export function resetGame() {
   window.location.reload();
   initGame();
 }
-
 window.addEventListener('load', () => {
   loadGame();
 });
