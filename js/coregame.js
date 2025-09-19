@@ -1,6 +1,6 @@
 // ----------------- Game Data -----------------
-import {updateBuildingText } from './game.js';
-import {gameData} from './gamedata.js'
+import {updateBuildingText,saveGame } from './game.js';
+import {gameData,getDefaultGameData} from './gamedata.js'
 
 
 
@@ -560,7 +560,4 @@ export function breedAnts() {
       
     }
   }
-}
-export function saveGame() {
-  localStorage.setItem('Colony_of_sacrifceV2', JSON.stringify(gameData));
 }

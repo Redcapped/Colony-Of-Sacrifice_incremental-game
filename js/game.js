@@ -1,5 +1,5 @@
 // ----------------- Imports -----------------
-import { saveGame, capitalize, collectResource,update_resource, adjustSacLevel,adjustAnt, recruitAnt, buyBuilding, updateGameTick,getTotalAnts} from './coregame.js';
+import { capitalize, collectResource,update_resource, adjustSacLevel,adjustAnt, recruitAnt, buyBuilding, updateGameTick,getTotalAnts} from './coregame.js';
 import { initTechTree } from './techTree.js';
 import {getDefaultGameData,gameData} from './gamedata.js'
 import { buildUI } from './buildUI.js';
@@ -106,6 +106,7 @@ export function update_unlocks() {
 }
 // ----------------- Game Initialization -----------------
 export function initGame() {
+  initGameWithDebug();
   loadGame();
   initTechTree();
   buildUI();
@@ -153,19 +154,6 @@ export function initGame() {
   // Reset button
   document.getElementById('resetGameBtn')?.addEventListener('click', resetGame);
 }
-function loadGame() {
-  const defaultData = getDefaultGameData();
-  const saved = localStorage.getItem('Colony_of_sacrifceV2');
-  if (saved) {
-    const loadedData = JSON.parse(saved);
-    // Merge saved data with defaults (future-proof)
-    for (let key in defaultData) {
-      gameData[key] = loadedData[key] !== undefined ? loadedData[key] : defaultData[key];
-    }
-  }
-  update_resource();
-  initTechTree(); // redraw tech tree correctly
-}
 export function updateBuildingText(buildingName){
 const building = gameData.buildings[buildingName]
 const tooltip = document.getElementById(`build${capitalize(buildingName)}Tooltip`);
@@ -207,3 +195,158 @@ window.addEventListener("DOMContentLoaded", () => {
   initGame();
 });
 //window.reset = resetGame()
+export function saveGame() {
+  try {
+    // Check if localStorage is available
+    if (typeof Storage === "undefined" || !window.localStorage) {
+      console.warn("localStorage not supported");
+      return false;
+    }
+    
+    // Test localStorage accessibility
+    localStorage.setItem('test', 'test');
+    localStorage.removeItem('test');
+    
+    const gameDataString = JSON.stringify(gameData);
+    localStorage.setItem('Colony_of_sacrifceV2', gameDataString);
+    
+    // Verify save worked
+    const saved = localStorage.getItem('Colony_of_sacrifceV2');
+    if (saved === gameDataString) {
+      console.log("Game saved successfully");
+      return true;
+    } else {
+      console.error("Save verification failed");
+      return false;
+    }
+  } catch (error) {
+    console.error("Failed to save game:", error);
+    
+    // Fallback: try to save with a shorter key or compressed data
+    try {
+      localStorage.setItem('ColonySave', JSON.stringify(gameData));
+      return true;
+    } catch (fallbackError) {
+      console.error("Fallback save also failed:", fallbackError);
+      return false;
+    }
+  }
+}
+
+// Enhanced load with better error handling
+export function loadGame() {
+  const defaultData = getDefaultGameData();
+  
+  try {
+    // Check if localStorage is available
+    if (typeof Storage === "undefined" || !window.localStorage) {
+      console.warn("localStorage not supported, using default data");
+      Object.assign(gameData, defaultData);
+      return;
+    }
+    
+    let saved = localStorage.getItem('Colony_of_sacrifceV2');
+    
+    // Try fallback key if main key fails
+    if (!saved) {
+      saved = localStorage.getItem('ColonySave');
+    }
+    
+    if (saved) {
+      try {
+        const loadedData = JSON.parse(saved);
+        
+        // Validate loaded data has expected structure
+        if (loadedData && typeof loadedData === 'object') {
+          // Merge saved data with defaults (preserves new features)
+          for (let key in defaultData) {
+            if (loadedData[key] !== undefined) {
+              // Deep merge for nested objects
+              if (typeof defaultData[key] === 'object' && !Array.isArray(defaultData[key])) {
+                gameData[key] = { ...defaultData[key], ...loadedData[key] };
+              } else {
+                gameData[key] = loadedData[key];
+              }
+            } else {
+              gameData[key] = defaultData[key];
+            }
+          }
+          console.log("Game loaded successfully");
+        } else {
+          throw new Error("Invalid save data structure");
+        }
+      } catch (parseError) {
+        console.error("Failed to parse saved game:", parseError);
+        Object.assign(gameData, defaultData);
+      }
+    } else {
+      console.log("No saved game found, using defaults");
+      Object.assign(gameData, defaultData);
+    }
+  } catch (error) {
+    console.error("Failed to load game:", error);
+    Object.assign(gameData, defaultData);
+  }
+  
+  update_resource();
+  initTechTree();
+}
+
+// Add periodic save verification
+export function verifySaveSystem() {
+  try {
+    const testData = { test: Date.now() };
+    localStorage.setItem('saveTest', JSON.stringify(testData));
+    const retrieved = JSON.parse(localStorage.getItem('saveTest'));
+    localStorage.removeItem('saveTest');
+    
+    if (retrieved.test === testData.test) {
+      console.log("Save system working correctly");
+      return true;
+    } else {
+      console.error("Save system verification failed");
+      return false;
+    }
+  } catch (error) {
+    console.error("Save system error:", error);
+    return false;
+  }
+}
+
+// Debug function to check localStorage status
+export function debugLocalStorage() {
+  console.log("=== LocalStorage Debug Info ===");
+  console.log("localStorage supported:", typeof Storage !== "undefined" && !!window.localStorage);
+  console.log("Current origin:", window.location.origin);
+  console.log("Current pathname:", window.location.pathname);
+  console.log("Protocol:", window.location.protocol);
+  
+  try {
+    console.log("localStorage.length:", localStorage.length);
+    console.log("Available space test:", localStorage.setItem('test', 'test'));
+    localStorage.removeItem('test');
+    console.log("Save game exists:", !!localStorage.getItem('Colony_of_sacrifceV2'));
+  } catch (error) {
+    console.error("localStorage access error:", error);
+  }
+}
+
+// Add this to your initGame function
+export function initGameWithDebug() {
+  console.log("Initializing game...");
+  debugLocalStorage();
+  verifySaveSystem();
+  
+  loadGame();
+  initTechTree();
+  buildUI();
+  update_resource();
+  update_unlocks();
+  
+  // Test save immediately
+  console.log("Testing initial save...");
+  const saveSuccess = saveGame();
+  console.log("Initial save result:", saveSuccess);
+  
+  // Continue with rest of initialization...
+}
