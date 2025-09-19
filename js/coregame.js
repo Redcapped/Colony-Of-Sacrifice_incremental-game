@@ -2,7 +2,7 @@
 import {updateBuildingText,saveGame } from './game.js';
 import {gameData,getDefaultGameData} from './gamedata.js'
 
-
+//again
 
 export function updateGameTick(){
   resetResourceGains();
