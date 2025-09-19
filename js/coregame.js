@@ -562,5 +562,5 @@ export function breedAnts() {
   }
 }
 export function saveGame() {
-  localStorage.setItem('Colony_of_sacrifce', JSON.stringify(gameData));
+  localStorage.setItem('Colony_of_sacrifcev2', JSON.stringify(gameData));
 }

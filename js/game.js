@@ -155,7 +155,7 @@ export function initGame() {
 }
 function loadGame() {
   const defaultData = getDefaultGameData();
-  const saved = localStorage.getItem('Colony_of_sacrifce');
+  const saved = localStorage.getItem('Colony_of_sacrifceV2');
   if (saved) {
     const loadedData = JSON.parse(saved);
     // Merge saved data with defaults (future-proof)
