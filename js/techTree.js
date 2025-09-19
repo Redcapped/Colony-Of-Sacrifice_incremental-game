@@ -1,6 +1,7 @@
 // techTree.js
-import { gameData, update_resource, update_resourcesUI } from './coregame.js';
-import { update_unlocks,buildResourceUI,buildAntUI } from './game.js';
+import { update_resource, update_resourcesUI } from './coregame.js';
+import { update_unlocks } from './game.js';
+import {gameData} from './gamedata.js'
 // ----------------- Tech Tree -----------------
 export const techTree = [
   {
@@ -91,7 +92,6 @@ export const techTree = [
     cost:{sugar:20},
     prereq:['anthutTech'],
     effect:()=>{ gameData.ants.breedingUnlocked = true;
-      buildAntUI();
       update_resourcesUI(); }
   },
   
@@ -115,7 +115,6 @@ export const techTree = [
   effect: () => {
     gameData.resources.lumber.unlocked = true;
     gameData.buildings.lumbermill.unlocked = true;
-    buildResourceUI()
     update_unlocks();}
   },
   {
@@ -181,6 +180,24 @@ export const techTree = [
   effect: () => {
     gameData.sacrifice.types.fish.unlocked = true;
     buildResourceUI();
+    update_unlocks();}
+  },
+  {id: 'aquaductUnlock',
+  name: 'aquaducts',
+  desc: 'Unlock the aquaduct and use it to gain passive water',
+  cost: { science: 150 },
+  prereq: ['irrigation'], 
+  effect: () => {
+    gameData.buildings.aquaduct.unlocked = true;
+    update_unlocks();}
+  },
+  {id: 'nurseriesUnlock',
+  name: 'nurseries',
+  desc: 'Unlock the nurseries and use it to speed up breeding',
+  cost: { science: 150 },
+  prereq: ['sacrificeRabbit 1'], 
+  effect: () => {
+    gameData.buildings.nurserie.unlocked = true;
     update_unlocks();}
   },
   {
