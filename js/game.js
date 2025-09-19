@@ -32,7 +32,7 @@ export function update_unlocks() {
     const btn = document.getElementById(`collect${capitalize(key)}Btn`);
     if (btn) btn.style.display = resUnlocked ? "inline-block" : "none";
   
-    const antLineSpan = document.getElementById(`${capitalize(key)}AntLine`);
+    const antLineSpan = document.getElementById(`${key}AntLine`);
     if (antLineSpan) antLineSpan.style.display = resUnlocked ? "grid" : "none";
     
     const resourRow = document.getElementById(`${capitalize(key)}Row`);

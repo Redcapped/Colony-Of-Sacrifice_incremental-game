@@ -1,6 +1,6 @@
 // ----------------- Game Data -----------------
 import {updateBuildingText,saveGame } from './game.js';
-import {gameData,getDefaultGameData} from './gamedata.js'
+import {gameData} from './gamedata.js'
 
 //again
 

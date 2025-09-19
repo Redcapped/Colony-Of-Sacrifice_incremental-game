@@ -1,5 +1,5 @@
 import {gameData} from './gamedata.js'
-import { performSacrifice,capitalize,getTotalAnts} from './coregame.js';
+import { performSacrifice,capitalize,getTotalAnts,buyBuilding} from './coregame.js';
 import { updateBuildingText } from './game.js';
 export function buildUI(){
       buildResourceUI();
