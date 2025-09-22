@@ -91,7 +91,7 @@ export const techTree = [
     desc:'Free ants create new ants. <br> Every ant pair makes a new ant every 64 seconds for 8 sugar.',
     cost:{sugar:20},
     prereq:['anthutTech'],
-    effect:()=>{ gameData.ants.breedingUnlocked = true;
+    effect:()=>{ gameData.ants.breeding.unlocked = true;
       update_resourcesUI(); }
   },
   
@@ -128,7 +128,7 @@ export const techTree = [
   {
     id:'scienceAnt',
     name:'Its time to think',
-    desc:'unlock scolar ant and desks. assinged scolar ants produces 1 science every 10 seconds for 3 sugar',
+    desc:'unlock scolar ant and desks. assinged scolar ants produces 1 science every 5 seconds for 10 sugar',
     cost:{water:120},
     prereq:['waterProd 1','lumberjackUnlock','waterhole 2'],
     effect:()=>{ 
@@ -144,7 +144,6 @@ export const techTree = [
   prereq: ['scienceAnt'],
   effect: () => {
     gameData.buildings.storageroom.unlocked = true;
-    buildResourceUI();
     update_unlocks();}
   },
   {
@@ -157,7 +156,7 @@ export const techTree = [
     gameData.sacrifice.unlocked = true;
     gameData.sacrifice.types.ant.unlocked = true;
     gameData.resources.blood.unlocked = true;
-    buildResourceUI();
+
     update_unlocks();}
   },
   {
@@ -168,7 +167,7 @@ export const techTree = [
   prereq: ['sacrificeAltar 1'], 
   effect: () => {
     gameData.sacrifice.types.fish.unlocked = true;
-    buildResourceUI();
+
     update_unlocks();}
   },
   {
@@ -179,7 +178,7 @@ export const techTree = [
   prereq: ['sacrificeAltar 2'], 
   effect: () => {
     gameData.sacrifice.types.fish.unlocked = true;
-    buildResourceUI();
+
     update_unlocks();}
   },
   {id: 'aquaductUnlock',
@@ -210,7 +209,58 @@ export const techTree = [
     gameData.resources.water.max = gameData.resources.water.max - 100;
     gameData.resources.water.amount = Math.min(gameData.resources.water.amount, gameData.resources.water.max);
     gameData.resources.blood.max += 15
-    buildResourceUI();
+    update_unlocks();}
+  },
+  {
+  id: 'bloodsiphon',
+  name: 'bloodsiphon',
+  desc: 'gain a tiny amount of blood from every living ant',
+  cost: { science: 50 },
+  prereq: ['bloodpit 1'], 
+  effect: () => {
+    gameData.resources.blood.passive += 0.001
+    update_unlocks();}
+  },
+  {
+  id: 'pheromones 3',
+  name: 'better understanding of pheromones',
+  desc: 'boost job productivitie based on ants assigned',
+  cost: { science: 100 },
+  prereq: ['sacrificeOwl 1'], 
+  effect: () => {
+    gameData.ants.jobs.pheromonesBoostUnlock = true
+    gameData.ants.jobs.pheromonesBoost += 0.01
+    update_unlocks();}
+  },
+    {
+  id: 'pheromones 3',
+  name: 'library',
+  desc: 'place to store the science',
+  cost: { science: 100 },
+  prereq: ['sacrificeOwl 1'], 
+  effect: () => {
+    gameData.buildings.library.unlocked = true
+    update_unlocks();}
+  },
+  {
+  id: 'termite 2',
+  name: 'copy the termites',
+  desc: 'make lumber a bit cheaper',
+  cost: { science: 25 },
+  prereq: ['stone 1'], 
+  effect: () => {
+    gameData.resources.lumber.cost.wood -= 5
+    update_unlocks();}
+  },
+  {
+  id: 'stoneStorage',
+  name: 'stone in Storage room',
+  desc: 'also storge stone in the storageroom',
+  cost: { science: 25 },
+  prereq: ['stone 1','storageroomUnlock'], 
+  effect: () => {
+    gameData.resources.stone.max += gameData.buildings.storageroom.level * gameData.buildings.storageroom.effect
+    gameData.buildings.storageroom.effectText = 'Increases max storage of wood / suger and stone by'
     update_unlocks();}
   },
   

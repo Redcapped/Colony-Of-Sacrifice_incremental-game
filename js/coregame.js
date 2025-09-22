@@ -1,119 +1,259 @@
 // ----------------- Game Data -----------------
-import {updateBuildingText,saveGame } from './game.js';
+import {updateBuildingText} from './game.js';
 import {gameData} from './gamedata.js'
-
-//again
 
 export function updateGameTick(){
   resetResourceGains();
   consumeSugarAnts();
   breedAnts();
   autoCollect();
+  updateActiveSacrifices();
   update_resource();
 
 }
 export function updateSacrificeUI() {
   // Check all active cooldowns and update buttons if needed
   for (const sacName in gameData.sacrifice.types) {
+    const isActive = isSacrificeActive(sacName);
+    const effectTimeRemaining = getActiveSacrificeTimeRemaining(sacName);
+    
     const btn = document.getElementById(`btnSacrifice${capitalize(sacName)}`);
     const tooltip = document.getElementById(`sac${capitalize(sacName)}Tooltip`);    
+    const freeAntsSpan = document.getElementById(`freeAntsSac`);
 
-    if (!btn | !tooltip) return;
-    const sacrifice = gameData.sacrifice.types[sacName]
+    if (freeAntsSpan) {
+      freeAntsSpan.innerHTML = `Amount of free ants: ${gameData.ants.assignedAnts.free}`;
+    }
+
+    if (!btn || !tooltip) continue; // Use continue instead of return to process other sacrifices
+
+    const sacrifice = gameData.sacrifice.types[sacName];
     const currentTime = Date.now();
-    const totalCooldown =  (sacrifice.cooldown + gameData.sacrifice.cooldownAdd) * gameData.sacrifice.cooldownMult*1000;
-    const total_duration = (sacrifice.duration + gameData.sacrifice.durationAdd) * gameData.sacrifice.durationMult*1000;
+    const totalCooldown = (sacrifice.cooldown + gameData.sacrifice.cooldownAdd) * gameData.sacrifice.cooldownMult * 1000;
     
-    // neem het minste tussen de cooldown en de effect duration
-    const timeLefteffect = Math.ceil((sacrifice.lastUsed + total_duration - currentTime) / 1000);
-    const timeLeftCooldown = Math.max(Math.ceil((sacrifice.lastUsed + totalCooldown - currentTime) / 1000),timeLefteffect);
-    //cheak of sacrifice van cooldown kan. als de effect dan nog bezig is zet het effect ook uit. effect mag niet langer dan cooldown
-    if (timeLeftCooldown <= 0 && sacrifice.isOnCooldown){
-      sacrifice.isOnCooldown = false
+    // Calculate cooldown time remaining
+    const cooldownTimeRemaining = sacrifice.isOnCooldown 
+      ? Math.max(0, Math.ceil((sacrifice.lastUse + totalCooldown - currentTime) / 1000))
+      : 0;
+
+    // Update button state based on cooldown
+    if (sacrifice.isOnCooldown && cooldownTimeRemaining > 0) {
+      btn.disabled = true;
+      btn.textContent = `${sacName} (${cooldownTimeRemaining}s)`;
+      
+      // Show cooldown info, and effect info if active
+      let tooltipContent = `Not useable for ${cooldownTimeRemaining} seconds<br><hr>`;
+      
+      if (isActive && effectTimeRemaining > 0) {
+        tooltipContent += `Effect lasts for ${effectTimeRemaining} more seconds<br><hr>`;
+      }
+      
+      tooltipContent += `${sacrifice.tooltipText}<br>`;
+      tooltipContent += `Sacrifice ${sacrifice.baseAntcost * gameData.sacrifice.globalLevel} ant(s) and ${sacrifice.baseBloodcost * gameData.sacrifice.globalLevel} blood to gain ${sacrifice.baseEffect * gameData.sacrifice.globalLevel} ${sacrifice.effectText}`;
+      
+      tooltip.innerHTML = tooltipContent;
+      
+    } else {
+      // Sacrifice is available
       btn.disabled = false;
-      if (sacrifice.isActive){
-        sacrifice.isActive = false
-        updateSacrificeEffect(sacName)
+      btn.textContent = capitalize(sacName);
+      
+      let tooltipContent = `${sacrifice.tooltipText}<br><hr>`;
+      
+      if (isActive && effectTimeRemaining > 0) {
+        tooltipContent += `Currently active - ${effectTimeRemaining}s remaining<br><hr>`;
+      }
+      
+      tooltipContent += `Sacrifice ${sacrifice.baseAntcost * gameData.sacrifice.globalLevel} ant(s) and ${sacrifice.baseBloodcost * gameData.sacrifice.globalLevel} blood to gain ${sacrifice.baseEffect * gameData.sacrifice.globalLevel} ${sacrifice.effectText}`;
+      
+      tooltip.innerHTML = tooltipContent;
+    }
+  }
+}
+
+// You'll also need to update the cooldown checking logic since the new system 
+// handles effect removal automatically. Here's a simplified cooldown update:
+export function updateSacrificeCooldowns() {
+  const currentTime = Date.now();
+  
+  for (const sacName in gameData.sacrifice.types) {
+    const sacrifice = gameData.sacrifice.types[sacName];
+    
+    if (sacrifice.isOnCooldown) {
+      const totalCooldown = (sacrifice.cooldown + gameData.sacrifice.cooldownAdd) * gameData.sacrifice.cooldownMult * 1000;
+      
+      if (currentTime >= sacrifice.lastUse + totalCooldown) {
+        sacrifice.isOnCooldown = false;
       }
     }
-    //anders is de knop nog disabeld
-    else if(sacrifice.isOnCooldown){
-      btn.disabled = true;
-      btn.textContent = `${sacName} (${timeLeftCooldown}s)`;
-      tooltip.innerHTML = `not useable for ${timeLeftCooldown} seconds  <br><hr> ${sacrifice.tooltipText} sac ${sacrifice.baseAntcost * gameData.sacrifice.globalLevel} ant(s) to gain ${sacrifice.baseEffect} ${sacrifice.effectText}`;
-    }
-    //effect is voorbij
-    if (timeLefteffect <= 0 && sacrifice.isActive){
-      sacrifice.isActive = false
-      updateSacrificeEffect(sacName)
-    }
-      
-    if(sacrifice.isActive){
-      tooltip.innerHTML = `not useable for ${timeLeftCooldown} seconds  <br><hr> effect last for ${timeLefteffect}  <br><hr> ${sacrifice.tooltipText} sac ${sacrifice.baseAntcost * gameData.sacrifice.globalLevel} ant(s) to gain ${sacrifice.baseEffect} ${sacrifice.effectText}`;
-    }
-    if (!sacrifice.isOnCooldown){
-      btn.textContent = sacName;
-      tooltip.innerHTML = `${sacrifice.tooltipText} <br><hr> sac ${sacrifice.baseAntcost * gameData.sacrifice.globalLevel} ant(s) and ${sacrifice.baseBloodcost * gameData.sacrifice.globalLevel} blood \n to gain ${sacrifice.baseEffect * gameData.sacrifice.globalLevel} ${sacrifice.effectText}`;
-    }      
-    }
+  }
 }
+
+// Updated sacrifice functions
 export function performSacrifice(sacrificeType) {
   const sacrifice = gameData.sacrifice.types[sacrificeType];
   if (!sacrifice || !sacrifice.unlocked) {
     alert(`${capitalize(sacrificeType)} is not available!`);
     return false;
   }
-  // Check ants
+  
+  // Check costs
   if (sacrifice.baseAntcost * gameData.sacrifice.globalLevel > gameData.ants.assignedAnts.free) {
-      alert(`not the needed amount of ants`);
-      return false;
-    }
-  // cheak blood
+    alert(`Not enough ants`);
+    return false;
+  }
+  
   if (sacrifice.baseBloodcost * gameData.sacrifice.globalLevel > gameData.resources.blood.amount) {
-      alert(`not the needed amount of blood`);
-      return false;
-    }
+    alert(`Not enough blood`);
+    return false;
+  }
 
-  // remove costs
-  gameData.ants.assignedAnts.free -= sacrifice.baseAntcost * gameData.sacrifice.globalLevel
-  gameData.resources.blood.amount -= sacrifice.baseBloodcost * gameData.sacrifice.globalLevel
+  // Remove costs
+  gameData.ants.assignedAnts.free -= sacrifice.baseAntcost;
+  gameData.resources.blood.amount -= sacrifice.baseBloodcost;
+  
   // Start cooldown
   const currentTime = Date.now();
-  sacrifice.lastUsed = currentTime;
-  sacrifice.isActive = true;
+  sacrifice.lastUse = currentTime;
   sacrifice.isOnCooldown = true;
-  updateSacrificeEffect(sacrificeType)
-  const btn = document.getElementById(`btnSacrifice${capitalize(sacrificeType)}`);
-  btn.disabled = true;
-  // Update resources/effects
+  
+  // Apply effect
+  applySacrificeEffect(sacrificeType);
+  
   update_resource();
   updateSacrificeUI();
   return true;
 }
-function updateSacrificeEffect(sacrificeType) {
-  const sacrifice = gameData.sacrifice.types[sacrificeType]
-  const factor = sacrifice.isActive ? 1 : -1
-  switch (sacrificeType) {
-    case "ant":
-      if (factor == 1){
-      gameData.resources.blood.amount = Math.min(gameData.resources.blood.amount+2,gameData.resources.blood.max);
-      gameData.resources.sugar.amount = Math.min(gameData.resources.sugar.amount+2,gameData.resources.sugar .max)}
-      break;
 
-    case "owl":
-      var added_value = gameData.resources.science.max * sacrifice.baseEffect - gameData.resources.science.max;
-      gameData.resources.science.bonusMaxAdd += added_value * factor;
-      break;
+function applySacrificeEffect(sacrificeType) {
+  const sacrifice = gameData.sacrifice.types[sacrificeType];
+  const currentTime = Date.now();
+  const effectValue = sacrifice.baseEffect * gameData.sacrifice.globalLevel;
+  const duration = (sacrifice.duration + gameData.sacrifice.durationAdd) * gameData.sacrifice.durationMult * 1000;
+  
+  if (sacrifice.effectType === 'instant') {
+    // Handle instant effects (like ant sacrifice)
+    switch (sacrificeType) {
+      case 'ant':
+        gameData.resources.blood.amount = Math.min(
+          gameData.resources.blood.amount + effectValue,
+          gameData.resources.blood.max
+        );
+        gameData.resources.sugar.amount = Math.min(
+          gameData.resources.sugar.amount + effectValue,
+          gameData.resources.sugar.max
+        );
+        break;
+    }
+  } else {
+    // Handle duration-based effects
+    const activeSacrifice = {
+      type: sacrificeType,
+      startTime: currentTime,
+      duration: duration,
+      effectType: sacrifice.effectType,
+      targetResource: sacrifice.targetResource,
+      effectValue: effectValue,
+      level: gameData.sacrifice.globalLevel
+    };
+    
+    // Add to active sacrifices
+    gameData.sacrifice.activeSacrifices.push(activeSacrifice);
+    
+    // Apply the effect immediately
+    applyActiveEffect(activeSacrifice, 1); // 1 = apply, -1 = remove
+  }
+}
 
-    case "fish":
-      var added_value = gameData.resources.water.prodFactor * sacrifice.baseEffect - gameData.resources.water.prodFactor;
-      gameData.resources.water.bonusProdAdd += added_value * factor
+function applyActiveEffect(activeSacrifice, direction) {
+  const { effectType, targetResource, effectValue } = activeSacrifice;
+  
+  switch (effectType) {
+    case 'bonusProdMul':
+      if (targetResource && gameData.resources[targetResource]) {
+        const multiplierChange = (effectValue - 1) * direction;
+        gameData.resources[targetResource].bonusProdMul += multiplierChange;
+      }
       break;
-
-    default:
-      console.warn(`No effect defined for sacrifice type: ${sacrificeType}`);
+      
+    case 'bonusMaxMul':
+      if (targetResource && gameData.resources[targetResource]) {
+        const multiplierChange = (effectValue - 1) * direction;
+        gameData.resources[targetResource].bonusMaxMul += multiplierChange;
+      }
+      break;
+      
+    case 'bonusProdAdd':
+      if (targetResource && gameData.resources[targetResource]) {
+        gameData.resources[targetResource].bonusProdAdd += effectValue * direction;
+      }
+      break;
+      
+    case 'bonusMaxAdd':
+      if (targetResource && gameData.resources[targetResource]) {
+        gameData.resources[targetResource].bonusMaxAdd += effectValue * direction;
+      }
+      break;
+      
+    case 'breedingSpeed':
+      if (direction === 1) {
+        gameData.ants.breeding.sacrificeFactor *= effectValue;
+      } else {
+        gameData.ants.breeding.sacrificeFactor /= effectValue;
+      }
       break;
   }
+}
+
+// Function to update active sacrifices (call this in your main game loop)
+export function updateActiveSacrifices() {
+  const currentTime = Date.now();
+  const activeSacrifices = gameData.sacrifice.activeSacrifices;
+  
+  // Check for expired sacrifices
+  for (let i = activeSacrifices.length - 1; i >= 0; i--) {
+    const activeSacrifice = activeSacrifices[i];
+    
+    if (currentTime >= activeSacrifice.startTime + activeSacrifice.duration) {
+      // Remove the effect
+      applyActiveEffect(activeSacrifice, -1);
+      
+      // Remove from active sacrifices array
+      activeSacrifices.splice(i, 1);
+      
+      console.log(`${activeSacrifice.type} sacrifice effect expired`);
+    }
+  }
+  
+  // Update cooldowns
+  for (const sacName in gameData.sacrifice.types) {
+    const sacrifice = gameData.sacrifice.types[sacName];
+    if (sacrifice.isOnCooldown) {
+      const totalCooldown = (sacrifice.cooldown + gameData.sacrifice.cooldownAdd) * gameData.sacrifice.cooldownMult * 1000;
+      
+      if (currentTime >= sacrifice.lastUse + totalCooldown) {
+        sacrifice.isOnCooldown = false;
+      }
+    }
+  }
+}
+
+// Helper function to get remaining time for active sacrifices
+export function getActiveSacrificeTimeRemaining(sacrificeType) {
+  const currentTime = Date.now();
+  const activeSacrifice = gameData.sacrifice.activeSacrifices.find(s => s.type === sacrificeType);
+  
+  if (activeSacrifice) {
+    const timeRemaining = (activeSacrifice.startTime + activeSacrifice.duration) - currentTime;
+    return Math.max(0, Math.ceil(timeRemaining / 1000));
+  }
+  
+  return 0;
+}
+
+// Helper function to check if a sacrifice is currently active
+export function isSacrificeActive(sacrificeType) {
+  return gameData.sacrifice.activeSacrifices.some(s => s.type === sacrificeType);
 }
 export function collectResource(key, amount) {
   // only for player buttons
@@ -223,11 +363,17 @@ function applyBuildingEffect(buildingKey) {
       break;
     
     case "storageroom":
-      //storageroom increases max sugar and wood
       gameData.resources.sugar.max += building.effect;
       gameData.resources.wood.max += building.effect;
+      if ('stoneStorage'in gameData.research){
+        gameData.resources.stone.max += building.effect;
+      }
       break;
     
+    case "library":
+      gameData.resources.science.max += building.effect;
+      break
+
     case "aquaduct":
       gameData.resources.water.passive += building.effect;
       break
@@ -271,9 +417,6 @@ export function update_resourcesUI() {
       
       // Calculate what ants WANT to produce (ideal production)
       const idealProduction = maxProductionResource(key) * gameData.gameUpdateRate;
-      
-      // Debug logging
-      //console.log(`${key}:  ideal=${idealProduction}, gain=${gain}, loss=${loss}, amount=${res.amount}, max=${res.max}`);
       
       let color = "gray";
       let timeText = "";
@@ -364,21 +507,20 @@ export function update_breedingBar() {
   const container = document.getElementById("breedingContainer");
   const bar = document.getElementById("breedingBar");
   const percent = document.getElementById("breedingPercent");
-
-  if (!gameData.ants.breedingUnlocked) {
+  const breeding = gameData.ants.breeding
+  if (!breeding.unlocked) {
     if (container) container.style.display = "none";
     return;
   }
 
   if (container) container.style.display = "block";
-  if (bar) bar.value = gameData.ants.partialAnts || 0;
-  if (percent) percent.innerText = `breeding progress: ${Math.floor((gameData.ants.partialAnts || 0) * 100)}%`;
+  if (bar) bar.value = breeding.partialAnts || 0;
+  if (percent) percent.innerText = `breeding progress: ${Math.floor((breeding.partialAnts || 0) * 100)}%`;
 }
 export function update_resource() {
   update_resourcesUI();
   update_antsUI();
   updateSacrificeUI();
-  saveGame();
 }
 export function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
@@ -405,7 +547,13 @@ function maxProductionResource(resource){
   const res = gameData.resources[resource]
   const timeFactor = 1 / gameData.gameUpdateRate;
   const antsAssigned = gameData.ants.assignedAnts[resource] || 0;
-  const maxProductionValue = ((antsAssigned * (res.prodFactor+ res.bonusProdAdd) * res.bonusProdMul) + res.passive) * timeFactor 
+  var passive = res.passive
+  
+  if (resource == 'blood'){
+    passive = res.passive * getTotalAnts()
+    }  
+  const maxProductionValue = ((antsAssigned * (res.prodFactor+ res.bonusProdAdd) * res.bonusProdMul) + passive) * timeFactor
+ 
   return maxProductionValue
 }
 function maxStorageResource(resource){
@@ -454,10 +602,12 @@ export function autoCollect() {
     
     for (const resKey of processOrder) {
         const res = resources[resKey];
+        
+        
         if (!res || !res.unlocked) continue;
 
         const antsAssigned = gameData.ants.assignedAnts[res.assigned] || 0;
-        if (antsAssigned === 0) continue;
+        if (antsAssigned === 0 && resKey != 'blood') continue;
 
         let maxProduction = maxProductionResource(resKey);
         
@@ -502,15 +652,16 @@ export function getTotalAnts(){
   return Object.values(gameData.ants.assignedAnts).reduce((a, b) => a + b, 0)
 }
 export function consumeSugarAnts(){
-  let timeFactor = 1/gameData.gameUpdateRate
+  const timeFactor = 1/gameData.gameUpdateRate
   let sugarNeedAnt = 1/gameData.ants.antSugarConsumtion
+  const breeding = gameData.ants.breeding
   // Calculate total ants
   const totalAnts = getTotalAnts();
   if (totalAnts === 0) return;
   let sugarNeed = totalAnts*timeFactor*sugarNeedAnt
   // minus the breedingcost if there are ant breeding
-  if (gameData.ants.maxAnts > totalAnts && gameData.ants.breedingUnlocked){
-    sugarNeed += Math.floor(gameData.ants.assignedAnts.free/2) * (gameData.ants.antsBreedingCost/gameData.ants.antsBreedingSpeed) * timeFactor
+  if (gameData.ants.maxAnts > totalAnts && breeding .unlocked){
+    sugarNeed += Math.floor(gameData.ants.assignedAnts.free/2) * (breeding.cost/breeding.speed) * timeFactor
   }
   
   gameData.resources.sugar.info.loss += sugarNeed
@@ -526,7 +677,7 @@ export function consumeSugarAnts(){
   gameData.resources.sugar.amount = 0;
 
   // Priority order: free ants first, then water, wood, sugar
-  const priorityOrder = ['free', 'water', 'wood', 'sugar'];
+  const priorityOrder = ['free', 'water', 'wood','stone','science','sugar'];
 
   for (let key of priorityOrder) {
     if (deficit <= 0) break;
@@ -541,22 +692,22 @@ export function consumeSugarAnts(){
 }
 export function breedAnts() {
   // Only allow breeding if research is unlocked
-  
-  if (!gameData.ants.breedingUnlocked) return;
+  const breeding = gameData.ants.breeding
+  if (!breeding.unlocked) return;
   
   const totalFree = gameData.ants.assignedAnts.free;
   
   if (totalFree < 2) return; // need at least 2 free ants
-  const ratePerSecond = (Math.floor(totalFree / 2)) / (gameData.ants.antsBreedingSpeed*gameData.ants.nurserieFactor);
+  const ratePerSecond = (Math.floor(totalFree / 2)) / (breeding.speed*breeding.nurserieFactor);
   const perTick = ratePerSecond / gameData.gameUpdateRate;
     
   if (gameData.ants.maxAnts > getTotalAnts()){
-    gameData.ants.partialAnts += perTick;
-    const newAnts = Math.floor(gameData.ants.partialAnts);
+    breeding.partialAnts += perTick;
+    const newAnts = Math.floor(breeding.partialAnts);
     if (newAnts > 0){
       const space = gameData.ants.maxAnts - getTotalAnts();
       gameData.ants.assignedAnts.free += Math.min(newAnts, space);
-      gameData.ants.partialAnts -= newAnts; // keep remainder
+      breeding.partialAnts -= newAnts; // keep remainder
       
     }
   }

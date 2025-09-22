@@ -40,6 +40,8 @@ function buildAntUI() {
 function buildBuildingUI() {
   const container = document.getElementById("buildingsContainer");
   if (!container) return; // safety check
+  // Clear existing content to prevent duplicates
+  container.innerHTML = ""; 
   const buildings = gameData.buildings;
 
   for (const key in buildings) {
@@ -133,37 +135,105 @@ function buildSacrificeUI() {
     const sacrifice = sacrifices[key];
     if (!sacrifice) continue;
 
-    // Tooltip wrapper
+    // Main sacrifice card container
+    const sacrificeCard = document.createElement("div");
+    sacrificeCard.className = "sacrifice-card";
+    sacrificeCard.style.display = sacrifice.unlocked ? "block" : "none";
+    sacrificeCard.id = `sacrificeCard${capitalize(key)}`;
+
+    // Level controls container (small)
+    const levelControls = document.createElement("div");
+    levelControls.className = "sacrifice-level-controls-small";
+
+    // Decrease level button
+    const decreaseBtn = document.createElement("button");
+    decreaseBtn.className = "sacrifice-level-btn-small";
+    decreaseBtn.id = `btnSacrifice${capitalize(key)}Minus`;
+    decreaseBtn.textContent = "-";
+    decreaseBtn.addEventListener("click", () => adjustSacrificeLevel(key, -1));
+
+    // Current level display
+    const levelDisplay = document.createElement("span");
+    levelDisplay.className = "sacrifice-level-display-small";
+    levelDisplay.id = `sacrifice${capitalize(key)}Level`;
+    levelDisplay.textContent = sacrifice.level || 1;
+
+    // Increase level button
+    const increaseBtn = document.createElement("button");
+    increaseBtn.className = "sacrifice-level-btn-small";
+    increaseBtn.id = `btnSacrifice${capitalize(key)}Plus`;
+    increaseBtn.textContent = "+";
+    increaseBtn.addEventListener("click", () => adjustSacrificeLevel(key, 1));
+
+    // Assemble level controls
+    levelControls.appendChild(decreaseBtn);
+    levelControls.appendChild(levelDisplay);
+    levelControls.appendChild(increaseBtn);
+    sacrificeCard.appendChild(levelControls);
+
+    // Main sacrifice button (with tooltip)
     const tooltipWrapper = document.createElement("div");
     tooltipWrapper.className = "tooltip";
-    tooltipWrapper.style.display = sacrifice.unlocked ? "block" : "none";
 
-    // Button
-    const btn = document.createElement("button");
-    btn.className = "sacrifice-btn";
-    btn.id = `btnSacrifice${capitalize(key)}`;
-    btn.textContent = sacrifice.title || capitalize(key);
+    const sacrificeBtn = document.createElement("button");
+    sacrificeBtn.className = "sacrifice-btn";
+    sacrificeBtn.id = `btnSacrifice${capitalize(key)}`;
+    sacrificeBtn.textContent = sacrifice.title || capitalize(key);
+    sacrificeBtn.addEventListener("click", () => performSacrifice(key));
 
-    // Click listener for performing sacrifice
-    btn.addEventListener("click", () => performSacrifice(key));
-
-    // Tooltip span
+    // Tooltip for sacrifice button
     const tooltipText = document.createElement("span");
     tooltipText.className = "tooltiptext";
     tooltipText.id = `sac${capitalize(key)}Tooltip`;
     tooltipText.textContent = sacrifice.tooltipText || "";
 
-    // Assemble button + tooltip
-    tooltipWrapper.appendChild(btn);
+    tooltipWrapper.appendChild(sacrificeBtn);
     tooltipWrapper.appendChild(tooltipText);
-    container.appendChild(tooltipWrapper);
+    sacrificeCard.appendChild(tooltipWrapper);
 
-    // Info (always visible, like your HTML mockup)
-    const infoDiv = document.createElement("div");
-    infoDiv.id = `sacrifice${capitalize(key)}Info`;
-    infoDiv.innerHTML = ``;
-    infoDiv.style.display = sacrifice.unlocked ? "block" : "none";
-    container.appendChild(infoDiv);
+    // Totem purchase button (hidden until totem is unlocked)
+    const totemWrapper = document.createElement("div");
+    totemWrapper.className = "tooltip totem-wrapper";
+    totemWrapper.id = `totemWrapper${capitalize(key)}`;
+    totemWrapper.style.display = (sacrifice.totem && sacrifice.totem.unlocked) ? "block" : "none";
+
+    const totemBtn = document.createElement("button");
+    totemBtn.className = "totem-btn";
+    totemBtn.id = `btnTotem${capitalize(key)}`;
+    totemBtn.textContent = sacrifice.totem ? `Buy ${sacrifice.totem.name || 'Totem'}` : 'Buy Totem';
+    totemBtn.addEventListener("click", () => buyTotem(key));
+
+    // Tooltip for totem button
+    const totemTooltipText = document.createElement("span");
+    totemTooltipText.className = "tooltiptext";
+    totemTooltipText.id = `totem${capitalize(key)}Tooltip`;
+    totemTooltipText.textContent = sacrifice.totem ? (sacrifice.totem.tooltipText || "") : "";
+
+    totemWrapper.appendChild(totemBtn);
+    totemWrapper.appendChild(totemTooltipText);
+    sacrificeCard.appendChild(totemWrapper);
+
+    // Cooldown loading bar (replaces info section)
+    const cooldownContainer = document.createElement("div");
+    cooldownContainer.className = "sacrifice-cooldown-container";
+    cooldownContainer.id = `sacrifice${capitalize(key)}Cooldown`;
+    
+    const cooldownLabel = document.createElement("div");
+    cooldownLabel.className = "sacrifice-cooldown-label";
+    cooldownLabel.textContent = "Ready";
+    cooldownContainer.appendChild(cooldownLabel);
+
+    const cooldownBar = document.createElement("progress");
+    cooldownBar.className = "sacrifice-cooldown-bar";
+    cooldownBar.id = `sacrifice${capitalize(key)}CooldownBar`;
+    cooldownBar.value = 0;
+    cooldownBar.max = 100;
+    cooldownBar.style.display = "none"; // Hidden when not on cooldown
+    cooldownContainer.appendChild(cooldownBar);
+
+    sacrificeCard.appendChild(cooldownContainer);
+
+    container.appendChild(sacrificeCard);
   }
 }
 export function buildStatUI() {
@@ -182,22 +252,25 @@ export function buildStatUI() {
 
     // Resource name (capitalized)
     const nameCell = document.createElement("td");
+    nameCell.className = "resource-name";
     nameCell.textContent = capitalize(key);
     row.appendChild(nameCell);
 
     // Cost (list of costs or "free")
     const costCell = document.createElement("td");
+    costCell.className = "resource-cost";
     costCell.id = `stat${capitalize(key)}Cost`;
     costCell.textContent =
       Object.keys(res.cost).length > 0
         ? Object.entries(res.cost)
             .map(([resName, val]) => `${val} ${capitalize(resName)}`)
             .join(", ")
-        : "free";
+        : "Free";
     row.appendChild(costCell);
 
     // Production
     const prodCell = document.createElement("td");
+    prodCell.className = "resource-production";
     prodCell.id = `stat${capitalize(key)}Prod`;
     prodCell.textContent = res.prodFactor;
     row.appendChild(prodCell);
@@ -208,27 +281,36 @@ export function buildStatUI() {
   // ===== Breeding Stats Table =====
   const breedingTbody = document.getElementById("breedingTableBody");
   breedingTbody.innerHTML = "";
-
+  const ants = gameData.ants
+  var breedingAnts = 0
+  if (getTotalAnts() < ants.maxAnts){
+    breedingAnts = Math.floor(gameData.ants.assignedAnts.free/2)
+  }
+  const breeding = ants.breeding
   const breedingStats = [
-    { name: "Ant sugar need (S)",         single: 1/gameData.ants.antSugarConsumtion   , total:(1/(gameData.ants.antSugarConsumtion)*getTotalAnts()).toFixed(2)},
-    { name: "breedspeed (S)",              single: (gameData.ants.antsBreedingSpeed*gameData.ants.nurserieFactor)    , total: ((gameData.ants.antsBreedingSpeed*gameData.ants.nurserieFactor  )/ Math.floor(gameData.ants.assignedAnts.free/2)).toFixed(0) },
-    { name: "sugar / new ant",             single: (gameData.ants.antsBreedingCost), total:'-'   },
-    { name: "sugarcost breeding",          single: (gameData.ants.antsBreedingCost/gameData.ants.antsBreedingSpeed).toFixed(3), total:(gameData.ants.antsBreedingCost/gameData.ants.antsBreedingSpeed)*Math.floor(gameData.ants.assignedAnts.free/2).toFixed(3)  }
+    { name: "Ant sugar consumption (S)", single: (1/ants.antSugarConsumtion).toFixed(2), total: (1/(ants.antSugarConsumtion)*getTotalAnts()).toFixed(2)},
+    { name: "Breeding speed (S)", single: (breeding.speed*breeding.nurserieFactor).toFixed(2), total: ((breeding.speed*breeding.nurserieFactor)/ breedingAnts).toFixed(2) },
+    { name: "Sugar per new ant", single: breeding.cost, total: 'Fixed cost' },
+    { name: "Sugar cost for breeding", single: (breeding.cost/breeding.speed).toFixed(3), total: ((breeding.cost/breeding.speed)*breedingAnts).toFixed(3) },
+    { name: "Total sugar cost ants (S)", single: '-', total: (((breeding.cost/breeding.speed)*breedingAnts) + (1/(ants.antSugarConsumtion)*getTotalAnts())).toFixed(2)  }
   ];
 
   for (const stat of breedingStats) {
-    if (!gameData.ants.breedingUnlocked) continue;
+    if (!breeding.unlocked) continue;
     const row = document.createElement("tr");
 
     const nameCell = document.createElement("td");
+    nameCell.className = "stat-name";
     nameCell.textContent = stat.name;
     row.appendChild(nameCell);
 
     const singleCell = document.createElement("td");
+    singleCell.className = "stat-value";
     singleCell.textContent = stat.single;
     row.appendChild(singleCell);
 
     const totalCell = document.createElement("td");
+    totalCell.className = "stat-value";
     totalCell.textContent = stat.total;
     row.appendChild(totalCell);
 
@@ -248,23 +330,22 @@ export function buildStatUI() {
 
     // Building name
     const nameCell = document.createElement("td");
+    nameCell.className = "building-name";
     nameCell.textContent = capitalize(key);
     row.appendChild(nameCell);
 
     // How many built
     const amountCell = document.createElement("td");
+    amountCell.className = "building-count";
     amountCell.textContent = b.level || 0;
     row.appendChild(amountCell);
 
-    // Effect text
+    // Effect description
     const effectTextCell = document.createElement("td");
-    effectTextCell.textContent = b.effectText || "-";
+    effectTextCell.className = "building-effect";
+    effectTextCell.textContent = `${b.effectText} ${(b.effect * b.level).toFixed(2) || "0"}` || "No effect description";
     row.appendChild(effectTextCell);
 
-    // Effect text
-    const effectCell = document.createElement("td");
-    effectCell.textContent = b.effect*b.level || "-";
-    row.appendChild(effectCell);
 
     buildingTbody.appendChild(row);
   }

@@ -14,6 +14,15 @@ export function openResearchTab(tab){
   document.querySelectorAll(".research-subtab").forEach(t=>t.classList.remove("active"));
   document.getElementById("research-"+tab).classList.add("active");
 }
+export function openAntsTab(tab) {
+  // Remove active class from all ants subtabs
+  document.querySelectorAll(".ants-subtab").forEach(t => t.classList.remove("active"));
+  document.getElementById("ants-" + tab).classList.add("active");
+  
+  // Update button states
+  document.querySelectorAll("#ants .tab-buttons button").forEach(btn => btn.classList.remove("active"));
+  document.getElementById("ants" + capitalize(tab) + "Btn").classList.add("active");
+}
 // ----------------- Unlocks & UI -----------------
 export function update_unlocks() {
   
@@ -36,7 +45,6 @@ export function update_unlocks() {
     if (antLineSpan) antLineSpan.style.display = resUnlocked ? "grid" : "none";
     
     const resourRow = document.getElementById(`${capitalize(key)}Row`);
-    console.log(resourRow,`${capitalize(key)}Row`)
     if (resourRow) resourRow.style.display = resUnlocked ? "flex" : "none";
   }
 
@@ -44,12 +52,10 @@ export function update_unlocks() {
   for (const key in gameData.buildings) {
     const building = gameData.buildings[key];
 
-    if (!building.unlocked) continue; // skip locked buildings
-
     const span = document.getElementById(`build${capitalize(key)}Tooltip`);
     if (!span) continue;
     const wrapper = span.parentElement;
-    if (wrapper){wrapper.style.display = "block";}
+    if (wrapper){wrapper.style.display = building.unlocked ? "block" : 'none'}
     
     updateBuildingText(key)    
   }
@@ -62,13 +68,13 @@ export function update_unlocks() {
   const breedingProgressContainer = document.getElementById("breedingProgressContainer");
   const nextAntProgress = document.getElementById("nextAntProgress");
   const nextAntPercent = document.getElementById("nextAntPercent");
-
-  if (gameData.ants.breedingUnlocked) {
+  const breeding = gameData.ants.breeding
+  if (breeding.unlocked) {
     if (breedingRate) breedingRate.style.display = "inline-block";
     if (breedingProgressContainer) breedingProgressContainer.style.display = "block";
 
     // Just read the partial value, no increment
-    const partial = gameData.ants.partial || 0;
+    const partial = breeding.partialAnts || 0;
 
     if (nextAntProgress) nextAntProgress.style.width = `${partial * 100}%`;
     if (nextAntPercent) nextAntPercent.innerText = `${Math.floor(partial * 100)}%`;
@@ -86,27 +92,21 @@ export function update_unlocks() {
 
   const freeAnts = document.getElementById("freeAntsValue");
   if (freeAnts) freeAnts.innerText = gameData.ants.assignedAnts.free;
-  // ---------------- Sacrifice Panel ----------------
-  const sacrificePanel = document.getElementById("sacrificePanel");
-  if (sacrificePanel) {
-    sacrificePanel.style.display = gameData.sacrifice.unlocked ? "block" : "none";
-  }
-  for (const sacName in gameData.sacrifice.types) {
+// ---------------- Sacrifice Panel ----------------
+// Show/hide individual sacrifice cards
+for (const sacName in gameData.sacrifice.types) {
   const sacrifice = gameData.sacrifice.types[sacName];
-  const sacEl = document.getElementById(`sac${capitalize(sacName)}Tooltip`);
-
-  if (sacEl) {
-    const wrapper = sacEl.parentElement;
-    if (wrapper){wrapper.style.display = sacrifice.unlocked ? "block" : "none";}
+  const sacrificeCard = document.getElementById(`sacrificeCard${capitalize(sacName)}`);
+  
+  if (sacrificeCard) {
+    sacrificeCard.style.display = sacrifice.unlocked ? "block" : "none";
   }
 }
-
   // ---------------- Resource UI ----------------
   update_resource();
 }
 // ----------------- Game Initialization -----------------
 export function initGame() {
-  initGameWithDebug();
   loadGame();
   initTechTree();
   buildUI();
@@ -115,6 +115,7 @@ export function initGame() {
   
   // ----------------- Intervals -----------------
   setInterval(updateGameTick, 1000 / gameData.gameUpdateRate);
+  setInterval(saveGame, 10000);
 
   // ----------------- Button Listeners -----------------
     // Main buttons
@@ -124,6 +125,10 @@ export function initGame() {
 
   document.getElementById('recruitAntBtn')?.addEventListener('click', recruitAnt);
 
+
+   // Research subtabs
+  document.getElementById('antsAssignmentBtn')?.addEventListener('click', () => openAntsTab('assignment'));
+  document.getElementById('antsSacrificeBtn')?.addEventListener('click', () => openAntsTab('sacrifice'));
   // Ant assignment
   document.getElementById('btnAntWaterMinus')?.addEventListener('click', () => adjustAnt('water', -1));
   document.getElementById('btnAntWaterPlus')?.addEventListener('click', () => adjustAnt('water', 1));
@@ -194,7 +199,7 @@ window.addEventListener('load', () => {
 window.addEventListener("DOMContentLoaded", () => {
   initGame();
 });
-//window.reset = resetGame()
+
 export function saveGame() {
   try {
     // Check if localStorage is available
@@ -313,40 +318,3 @@ export function verifySaveSystem() {
   }
 }
 
-// Debug function to check localStorage status
-export function debugLocalStorage() {
-  console.log("=== LocalStorage Debug Info ===");
-  console.log("localStorage supported:", typeof Storage !== "undefined" && !!window.localStorage);
-  console.log("Current origin:", window.location.origin);
-  console.log("Current pathname:", window.location.pathname);
-  console.log("Protocol:", window.location.protocol);
-  
-  try {
-    console.log("localStorage.length:", localStorage.length);
-    console.log("Available space test:", localStorage.setItem('test', 'test'));
-    localStorage.removeItem('test');
-    console.log("Save game exists:", !!localStorage.getItem('Colony_of_sacrifceV2'));
-  } catch (error) {
-    console.error("localStorage access error:", error);
-  }
-}
-
-// Add this to your initGame function
-export function initGameWithDebug() {
-  console.log("Initializing game...");
-  debugLocalStorage();
-  verifySaveSystem();
-  
-  loadGame();
-  initTechTree();
-  buildUI();
-  update_resource();
-  update_unlocks();
-  
-  // Test save immediately
-  console.log("Testing initial save...");
-  const saveSuccess = saveGame();
-  console.log("Initial save result:", saveSuccess);
-  
-  // Continue with rest of initialization...
-}

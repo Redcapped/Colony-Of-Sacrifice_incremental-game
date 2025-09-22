@@ -56,6 +56,45 @@ body {
 .tab-bar button:hover { text-decoration: underline; }
 .tab-bar button:focus { outline: none; }
 
+/* ---------------- Subtabs for Ants and Research ---------------- */
+.tab-buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #ddd;
+  padding-bottom: 10px;
+}
+
+.tab-buttons button {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  color: #495057;
+  font-size: 14px;
+  padding: 8px 16px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.tab-buttons button:hover {
+  background: #e9ecef;
+  color: #212529;
+}
+
+.tab-buttons button.active {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+/* Research subtabs */
+.research-subtab { display: none; }
+.research-subtab.active { display: block; }
+
+/* Ants subtabs */
+.ants-subtab { display: none; }
+.ants-subtab.active { display: block; }
+
 /* Apply same styles to both .main-btn and .tech-btn */
 .main-btn,
 .tech-btn,
@@ -119,7 +158,6 @@ button:disabled {
   z-index: auto;
 }
 
-
 /* Each row spans the left 70% */
 .grid-row {
   grid-column: 1 / 2; /* span only the left column */
@@ -147,8 +185,6 @@ button:disabled {
    /* left align buttons */
 }
 
-
-
 .event-log {
   grid-column: 2 / 3; /* occupy the right 30% column */
   padding: 10px;
@@ -158,7 +194,6 @@ button:disabled {
   overflow-y: auto;
   font-size: 14px;
 }
-
 
 #antAssignmentContainer {
   display: flex;
@@ -187,6 +222,7 @@ button:disabled {
   display: block;
   text-align: center;  /* centers numbers and labels */
 }
+
 .ants-container {
   display: flex;
   justify-content: space-between;
@@ -207,6 +243,258 @@ button:disabled {
   background: #fffbe6;
 }
 
+/* ---------------- Enhanced Sacrifice Panel ---------------- */
+.sacrifice-card {
+  background: white;
+  border: 2px solid #dc3545;
+  border-radius: 12px;
+  padding: 15px;
+  margin: 10px 0;
+  box-shadow: 0 4px 8px rgba(220, 53, 69, 0.2);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  min-width: 200px;
+}
+
+.sacrifice-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(220, 53, 69, 0.3);
+}
+
+/* Small level controls */
+.sacrifice-level-controls-small {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.sacrifice-level-btn-small {
+  width: 20px;
+  height: 20px;
+  border: 1px solid #6c757d;
+  background: #ffffff;
+  color: #495057;
+  font-size: 12px;
+  font-weight: bold;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sacrifice-level-btn-small:hover:not(:disabled) {
+  background: #6c757d;
+  color: white;
+}
+
+.sacrifice-level-btn-small:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #e9ecef;
+}
+
+.sacrifice-level-display-small {
+  font-size: 14px;
+  font-weight: bold;
+  color: #495057;
+  min-width: 20px;
+  text-align: center;
+  padding: 2px 6px;
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+}
+
+/* Enhanced sacrifice button */
+.sacrifice-btn {
+  display: block;
+  width: 100%;
+  margin: 10px 0;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #fff;
+  background: linear-gradient(135deg, #dc3545, #a71e2a);
+  box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sacrifice-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background: linear-gradient(135deg, #e55167, #c13651);
+  box-shadow: 0 6px 12px rgba(220, 53, 69, 0.4);
+}
+
+.sacrifice-btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(220, 53, 69, 0.3);
+}
+
+.sacrifice-btn:disabled {
+  background: linear-gradient(135deg, #b0b0b0, #8d8d8d);
+  color: #e0e0e0;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+  opacity: 0.7;
+}
+
+/* Totem wrapper and button styling */
+.totem-wrapper {
+  margin-top: 5px;
+}
+
+.totem-btn {
+  display: block;
+  width: 100%;
+  margin: 5px 0;
+  padding: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 2px solid #28a745;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #28a745;
+  background: #ffffff;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.totem-btn:hover:not(:disabled) {
+  background: #28a745;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 6px rgba(40, 167, 69, 0.3);
+}
+
+.totem-btn:disabled {
+  background: #6c757d;
+  color: white;
+  border-color: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+.totem-btn.totem-owned {
+  background: #28a745;
+  color: white;
+  border-color: #28a745;
+}
+
+/* Cooldown system replaces info section */
+.sacrifice-cooldown-container {
+  margin-top: 10px;
+  padding: 8px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border-left: 4px solid #dc3545;
+}
+
+.sacrifice-cooldown-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #495057;
+  text-align: center;
+  margin-bottom: 5px;
+}
+
+.sacrifice-cooldown-bar {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background-color: #e9ecef;
+  border: 1px solid #dee2e6;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.sacrifice-cooldown-bar::-webkit-progress-bar {
+  background-color: #e9ecef;
+  border-radius: 4px;
+}
+
+.sacrifice-cooldown-bar::-webkit-progress-value {
+  background: linear-gradient(135deg, #dc3545, #a71e2a);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.sacrifice-cooldown-bar::-moz-progress-bar {
+  background: linear-gradient(135deg, #dc3545, #a71e2a);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+/* Horizontal layout - cards side by side */
+#sacrificeContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.sacrifice-card {
+  flex: 1;
+  min-width: 180px;
+  max-width: 250px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  #sacrificeContainer {
+    gap: 10px;
+  }
+  
+  .sacrifice-card {
+    padding: 12px;
+    min-width: 160px;
+    max-width: none;
+    flex: 1 1 calc(50% - 5px); /* Two cards per row on mobile */
+  }
+  
+  .sacrifice-level-controls-small {
+    gap: 6px;
+  }
+  
+  .sacrifice-level-btn-small {
+    width: 18px;
+    height: 18px;
+    font-size: 11px;
+  }
+
+  .sacrifice-btn {
+    padding: 10px;
+    font-size: 13px;
+  }
+
+  .totem-btn {
+    padding: 6px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sacrifice-card {
+    flex: 1 1 100%; /* Single card per row on very small screens */
+    min-width: 140px;
+  }
+}
+
+@media (min-width: 769px) {
+  .sacrifice-card {
+    min-width: 200px;
+    max-width: 280px;
+  }
+}
 /* ---------------- Tech Grid & Buttons ---------------- */
 .tech-grid {
   display: grid;
@@ -214,10 +502,6 @@ button:disabled {
   gap: 15px;
   margin-top: 15px;
 }
-
-/* ---------------- Research Subtabs ---------------- */
-.research-subtab { display: none; }
-.research-subtab.active { display: block; }
 
 /* ---------------- Tooltips ---------------- */
 /* Tooltip wrapper now takes the same space as a grid item */
@@ -233,7 +517,8 @@ button:disabled {
 /* Buttons inside tooltip wrapper */
 .tooltip .tech-btn,
 .tooltip .main-btn,
-.tooltip .build-btn {
+.tooltip .build-btn,
+.tooltip .sacrifice-btn {
   width: 100%;                /* button fills the wrapper */
   box-sizing: border-box;
 }
@@ -273,7 +558,6 @@ button:disabled {
   top: auto;
   bottom: 125%;
 }
-
 
 /* ------------------- General Layout ------------------- */
 
@@ -395,3 +679,206 @@ progress::-moz-progress-bar {
 .bar-small { height: 12px; }
 .bar-medium { height: 12px; }
 .bar-large { height: 24px; }
+
+/* ------------------- Stats Page Styling ------------------- */
+
+#stats {
+  padding: 20px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  min-height: 100vh;
+}
+
+#stats h1 {
+  color: #495057;
+  margin-bottom: 30px;
+  text-align: center;
+  font-size: 2.5rem;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+.stats-section {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border: 1px solid #dee2e6;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stats-section:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.stats-section h2, .stats-section h3 {
+  color: #343a40;
+  margin-bottom: 20px;
+  font-size: 1.8rem;
+  border-bottom: 3px solid #007bff;
+  padding-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stats-section h3 {
+  font-size: 1.5rem;
+  border-bottom: 2px solid #28a745;
+  margin-top: 30px;
+}
+
+.stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+  font-size: 14px;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.stats-table thead {
+  background: linear-gradient(135deg, #007bff, #0056b3);
+  color: white;
+}
+
+.stats-table th {
+  padding: 15px 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: none;
+}
+
+.stats-table td {
+  padding: 12px;
+  border-bottom: 1px solid #e9ecef;
+  transition: background-color 0.2s ease;
+}
+
+.stats-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.stats-table tbody tr:nth-child(even) {
+  background-color: #fbfcfd;
+}
+
+.stats-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Resource table specific styling */
+#statsTableResource thead {
+  background: linear-gradient(135deg, #28a745, #1e7e34);
+}
+
+#statsTableResource .resource-name {
+  font-weight: 600;
+  color: #495057;
+}
+
+#statsTableResource .resource-cost {
+  font-family: 'Courier New', monospace;
+  color: #6c757d;
+}
+
+#statsTableResource .resource-production {
+  font-weight: 600;
+  color: #28a745;
+  text-align: center;
+}
+
+/* Breeding table specific styling */
+#statsTableBreeding thead {
+  background: linear-gradient(135deg, #17a2b8, #117a8b);
+}
+
+#statsTableBreeding .stat-name {
+  font-weight: 600;
+  color: #495057;
+}
+
+#statsTableBreeding .stat-value {
+  font-family: 'Courier New', monospace;
+  text-align: center;
+  color: #17a2b8;
+  font-weight: 500;
+}
+
+/* Buildings table specific styling */
+#statsTablebuilding thead {
+  background: linear-gradient(135deg, #fd7e14, #dc6502);
+}
+
+#statsTablebuilding .building-name {
+  font-weight: 600;
+  color: #495057;
+}
+
+#statsTablebuilding .building-count {
+  text-align: center;
+  font-weight: 600;
+  color: #fd7e14;
+}
+
+#statsTablebuilding .building-effect {
+  color: #6c757d;
+  font-style: italic;
+}
+
+/* Stats grid for better organization */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 30px;
+  margin-top: 20px;
+}
+
+/* Icon styles for section headers */
+.stats-section h2:before,
+.stats-section h3:before {
+  content: "📊";
+  font-size: 1.2em;
+}
+
+.stats-section h3:before {
+  content: "🔢";
+}
+
+#statsTableResource + h3:before {
+  content: "🐜";
+}
+
+#statsTablebuilding + h3:before {
+  content: "🏗️";
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .stats-table {
+    font-size: 12px;
+  }
+  
+  .stats-table th,
+  .stats-table td {
+    padding: 8px 6px;
+  }
+  
+  #stats h1 {
+    font-size: 2rem;
+  }
+  
+  .stats-section {
+    padding: 15px;
+    margin-bottom: 20px;
+  }
+}

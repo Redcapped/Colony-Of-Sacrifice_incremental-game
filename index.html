@@ -102,133 +102,160 @@
 
    <!-- Ants Tab -->
 <div id="ants" class="tab">
+  <h1>Ant Management</h1>
+  
+  <!-- Subtab buttons for Ants tab -->
+  <div class="tab-buttons">
+    <button id="antsAssignmentBtn">Ant Assignment</button>
+    <button id="antsSacrificeBtn">Sacrifice Ants</button>
+  </div>
 
-  <div class="ants-container">
-    <!-- LEFT SIDE: Ant assignment -->
-    <div class="ants-left">
-      <h2>Assign Ants to Jobs</h2>
+  <!-- Assignment subtab -->
+  <div id="ants-assignment" class="ants-subtab active">
+    <div class="ants-container">
+      <!-- LEFT SIDE: Ant assignment -->
+      <div class="ants-left">
+        <h2>Assign Ants to Jobs</h2>
 
-      <!-- Breeding rate -->
-      <div id="breedingRate" style="display:inline-block;">
-        New ants per second: <span id="breedingRateValue">0</span>
+        <!-- Breeding rate -->
+        <div id="breedingRate" style="display:inline-block;">
+          New ants per second: <span id="breedingRateValue">0</span>
+        </div>
+        <br>
+
+        <!-- Free ants -->
+        <div id="freeAnts">
+          Free ants: <span id="freeAntsValue">0</span>
+        </div>
+
+        <!-- Breeding progress bar (hidden initially) -->
+        <div id="breedingContainer" style="display:none; margin-top:5px;">
+          <span id="breedingPercent">0%</span>
+        </div>
+
+        <!-- Ant assignment -->
+        <div id="antAssignmentContainer">
+          <!-- Header Row -->
+          <div class="ant-line header">
+            <span>Type</span>
+            <span>-</span>
+            <span>Count</span>
+            <span>+</span>
+          </div>
+
+          <!-- Water Ant -->
+          <div id="waterAntLine" class="ant-line">
+            <span>Water Ant</span>
+            <button id="btnAntWaterMinus">-</button>
+            <span id="antsWater">0</span>
+            <button id="btnAntWaterPlus">+</button>
+          </div>
+
+          <!-- Sugar Ant -->
+          <div id="sugarAntLine" class="ant-line">
+            <span>Sugar Ant</span>
+            <button id="btnAntSugarMinus">-</button>
+            <span id="antsSugar">0</span>
+            <button id="btnAntSugarPlus">+</button>
+          </div>
+
+          <!-- Wood Ant -->
+          <div id="woodAntLine" class="ant-line">
+            <span>Wood Ant</span>
+            <button id="btnAntWoodMinus">-</button>
+            <span id="antsWood">0</span>
+            <button id="btnAntWoodPlus">+</button>
+          </div>
+
+          <!-- Lumber Ant -->
+          <div id="lumberAntLine" class="ant-line">
+            <span>Lumber Ant</span>
+            <button id="btnAntLumberMinus">-</button>
+            <span id="antsLumber">0</span>
+            <button id="btnAntLumberPlus">+</button>
+          </div>
+
+          <!-- Science Ant -->
+          <div id="scienceAntLine" class="ant-line" >
+            <span>Science Ant</span>
+            <button id="btnAntScienceMinus">-</button>
+            <span id="antsScience">0</span>
+            <button id="btnAntSciencePlus">+</button>
+          </div>
+        </div>
       </div>
-      <br>
 
-      <!-- Free ants -->
-      <div id="freeAnts">
-        Free ants: <span id="freeAntsValue">0</span>
-      </div>
-
-      <!-- Breeding progress bar (hidden initially) -->
-      <div id="breedingContainer" style="display:none; margin-top:5px;">
-        <span id="breedingPercent">0%</span>
-      </div>
-
-      <!-- Ant assignment -->
-      <div id="antAssignmentContainer">
-        <!-- Header Row -->
-        <div class="ant-line header">
-          <span>Type</span>
-          <span>-</span>
-          <span>Count</span>
-          <span>+</span>
-        </div>
-
-        <!-- Water Ant -->
-        <div id="waterAntLine" class="ant-line">
-          <span>Water Ant</span>
-          <button id="btnAntWaterMinus">-</button>
-          <span id="antsWater">0</span>
-          <button id="btnAntWaterPlus">+</button>
-        </div>
-
-        <!-- Sugar Ant -->
-        <div id="sugarAntLine" class="ant-line">
-          <span>Sugar Ant</span>
-          <button id="btnAntSugarMinus">-</button>
-          <span id="antsSugar">0</span>
-          <button id="btnAntSugarPlus">+</button>
-        </div>
-
-        <!-- Wood Ant -->
-        <div id="woodAntLine" class="ant-line">
-          <span>Wood Ant</span>
-          <button id="btnAntWoodMinus">-</button>
-          <span id="antsWood">0</span>
-          <button id="btnAntWoodPlus">+</button>
-        </div>
-
-        <!-- Lumber Ant -->
-        <div id="lumberAntLine" class="ant-line">
-          <span>Lumber Ant</span>
-          <button id="btnAntLumberMinus">-</button>
-          <span id="antsLumber">0</span>
-          <button id="btnAntLumberPlus">+</button>
-        </div>
-
-        <!-- Science Ant -->
-        <div id="scienceAntLine" class="ant-line" >
-          <span>Science Ant</span>
-          <button id="btnAntScienceMinus">-</button>
-          <span id="antsScience">0</span>
-          <button id="btnAntSciencePlus">+</button>
-        </div>
+      <!-- RIGHT SIDE: Could be used for other assignment info -->
+      <div class="ants-right">
+        <h2>Assignment Info</h2>
+        <p>Additional information about ant assignments can go here.</p>
       </div>
     </div>
-
-    <!-- RIGHT SIDE: Sacrifice section -->
-    <div class="ants-right" id="sacrificePanel">
-  <h2>Sacrifice Ants</h2>
-  <p>Sacrifice ants to gain temporary buffs.</p>
-
-  <!-- Shared global controls -->
-  <div class="sacrifice-controls">
-    <button id="btnSacMinus">-</button>
-    <span id="sacrificeLevel">1</span>
-    <button id="btnSacPlus">+</button>
   </div>
 
-  <div id = "sacrificeContainer"></div>
-  <!-- Individual spell info -->
-
-
-  </div>
-  </div>
-
-  </div>
-    <!-- Stats Tab -->
-    <div id="stats" class="tab">
-      <h1>Production Stats</h1>
-      <table id="statsTableResource" border="1" cellspacing="0" cellpadding="6">
-        <thead>
-          <tr>
-            <th>Resource</th>
-            <th>Cost</th>
-            <th>Production / Ant / Second</th>
-          </tr>
-        </thead>
-        <tbody id="statsTableBody">
-          <!-- Rows will be generated here -->
-        </tbody>
-      </table>
-
-      <h3>Breeding Stats</h3>
-      <table id="statsTableBreeding" border="1" cellspacing="0" cellpadding="6">
-        <thead>
-          <tr><th>Stat</th><th>single</th><th>total</th></tr>
-        </thead>
-        <tbody id="breedingTableBody"></tbody>
-      </table>
-
-      <h3>Buildings</h3>
-      <table id="statsTablebuilding" border="1" cellspacing="0" cellpadding="6">
-        <thead>
-          <tr><th>Building</th><th>Built</th><th>Effect</th></tr>
-        </thead>
-        <tbody id="buildingsTableBody"></tbody>
-      </table>
-
+  <!-- Sacrifice subtab -->
+  <div id="ants-sacrifice" class="ants-subtab">
+    <div class="ants-container">
+      <!-- Sacrifice section moved here -->
+      <div class="ants-sacrifice-panel">
+        <h2>Sacrifice Ants</h2>
+        <p>Sacrifice ants to gain temporary buffs.</p>
+        <span id="freeAntsSac" ></span>
+        <div id="sacrificeContainer"></div>
+      </div>
     </div>
+  </div>
+</div>
+<!-- STATS -->
+  <div id="stats" class="tab">
+    <h1>Production Statistics</h1>
+    
+    <div class="stats-grid">
+      <div class="stats-section">
+        <h2>Resource Production</h2>
+        <table id="statsTableResource" class="stats-table">
+          <thead>
+            <tr>
+              <th>Resource</th>
+              <th>Cost</th>
+              <th>Production / Ant / Second</th>
+            </tr>
+          </thead>
+          <tbody id="statsTableBody">
+            <!-- Rows will be generated here -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="stats-section">
+        <h3>Ant Breeding Statistics</h3>
+        <table id="statsTableBreeding" class="stats-table">
+          <thead>
+            <tr>
+              <th>Stat</th>
+              <th>Per Unit</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody id="breedingTableBody"></tbody>
+        </table>
+      </div>
+
+      <div class="stats-section">
+        <h3>Building Infrastructure</h3>
+        <table id="statsTablebuilding" class="stats-table">
+          <thead>
+            <tr>
+              <th>Building</th>
+              <th>Count</th>
+              <th>Effect</th>
+            </tr>
+          </thead>
+          <tbody id="buildingsTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
     <!-- Settings Tab -->
     <div id="settings" class="tab">
       <h1>Settings</h1>
