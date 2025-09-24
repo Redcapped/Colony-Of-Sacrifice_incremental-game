@@ -882,3 +882,389 @@ progress::-moz-progress-bar {
     margin-bottom: 20px;
   }
 }
+/* Furnace System Styles - Add to your existing CSS */
+
+/* Main furnace panel */
+.furnace-panel {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  margin: 20px 0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border: 1px solid #dee2e6;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.furnace-panel:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
+.furnace-panel h3 {
+  color: #343a40;
+  margin-bottom: 20px;
+  font-size: 1.8rem;
+  border-bottom: 3px solid #dc3545;
+  padding-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.furnace-panel h3:before {
+  content: "🔥";
+  font-size: 1.2em;
+}
+
+.furnace-panel h4 {
+  color: #495057;
+  margin: 20px 0 15px 0;
+  font-size: 1.3rem;
+  border-bottom: 2px solid #fd7e14;
+  padding-bottom: 8px;
+}
+
+.furnace-panel h5 {
+  color: #6c757d;
+  margin: 15px 0 10px 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+/* Furnace status section */
+.furnace-status {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 25px;
+  padding: 15px;
+  background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+  border-radius: 8px;
+  border: 2px solid #ff9800;
+}
+
+#furnaceTimer {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #e65100;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+.timer-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin: 15px 0;
+}
+
+#timerSlider {
+  flex: 1;
+  height: 8px;
+  border-radius: 4px;
+  background: #dee2e6;
+  outline: none;
+}
+
+#timerSlider::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #28a745;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+#timerSlider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #28a745;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+#timerDisplay {
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: #155724;
+  min-width: 50px;
+  text-align: center;
+  background: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #28a745;
+}
+
+.preset-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
+.preset-btn {
+  background: white;
+  border: 2px solid #28a745;
+  color: #28a745;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  min-width: 50px;
+}
+
+.preset-btn:hover {
+  background: #28a745;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(40, 167, 69, 0.3);
+}
+
+/* Progress bar */
+#furnaceProgress {
+  width: 100%;
+  height: 12px;
+  background: #e9ecef;
+  border-radius: 6px;
+  overflow: hidden;
+  margin: 10px 0;
+  border: 1px solid #dee2e6;
+}
+
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(135deg, #28a745, #20c997);
+  transition: width 0.3s ease;
+  border-radius: 6px;
+  position: relative;
+}
+
+.progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.3) 50%, transparent 60%);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+#furnaceTimer {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: #e65100;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+}
+
+#furnaceStopBtn {
+  background: linear-gradient(135deg, #dc3545, #a71e2a);
+  box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3); }
+  50% { box-shadow: 0 6px 16px rgba(220, 53, 69, 0.6); }
+  100% { box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3); }
+}
+
+/* Recipe selection */
+.recipe-selection {
+  margin-bottom: 30px;
+}
+
+#recipeButtons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.recipe-btn {
+  background: linear-gradient(135deg, #6f42c1, #563d7c);
+  box-shadow: 0 4px 8px rgba(111, 66, 193, 0.3);
+  padding: 15px;
+  text-align: left;
+  min-height: 100px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.recipe-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #563d7c, #452855);
+  box-shadow: 0 6px 16px rgba(111, 66, 193, 0.4);
+}
+
+.recipe-btn.disabled {
+  background: linear-gradient(135deg, #6c757d, #5a6268);
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.recipe-name {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: #fff;
+}
+
+.recipe-formula {
+  font-size: 0.95rem;
+  margin-bottom: 5px;
+  color: #e9ecef;
+  font-family: monospace;
+}
+
+.recipe-time {
+  font-size: 0.85rem;
+  color: #ced4da;
+  font-style: italic;
+}
+
+/* Attempt history section */
+.attempt-history {
+  margin-top: 30px;
+}
+
+.recipe-history {
+  margin-bottom: 25px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 15px;
+  border-left: 4px solid #28a745;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.history-item {
+  display: grid;
+  grid-template-columns: 80px 100px 1fr;
+  gap: 15px;
+  align-items: center;
+  padding: 10px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.history-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Result-based styling */
+.history-item.perfect {
+  background: linear-gradient(135deg, #d4edda, #c3e6cb);
+  border-left: 4px solid #28a745;
+  color: #155724;
+}
+
+.history-item.too-short {
+  background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+  border-left: 4px solid #ffc107;
+  color: #856404;
+}
+
+.history-item.burnt {
+  background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+  border-left: 4px solid #dc3545;
+  color: #721c24;
+}
+
+.attempt-time {
+  font-weight: bold;
+  font-family: monospace;
+  font-size: 1rem;
+}
+
+.attempt-result {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.attempt-timestamp {
+  color: #6c757d;
+  font-size: 0.8rem;
+  text-align: right;
+}
+
+/* Special effects for perfect results */
+.history-item.perfect .attempt-result {
+  animation: perfectGlow 2s ease-in-out;
+}
+
+@keyframes perfectGlow {
+  0%, 100% { text-shadow: none; }
+  50% { text-shadow: 0 0 10px #28a745; }
+}
+
+/* Empty state */
+.attempt-history:empty:after {
+  content: "No attempts yet. Start smelting to see your timing history!";
+  display: block;
+  text-align: center;
+  color: #6c757d;
+  font-style: italic;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 2px dashed #dee2e6;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .furnace-panel {
+    padding: 15px;
+    margin: 15px 0;
+  }
+  
+  .furnace-status {
+    flex-direction: column;
+    text-align: center;
+    gap: 15px;
+  }
+  
+  #recipeButtons {
+    grid-template-columns: 1fr;
+  }
+  
+  .recipe-btn {
+    padding: 12px;
+    min-height: 80px;
+  }
+  
+  .history-item {
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: 5px;
+  }
+  
+  .attempt-timestamp {
+    text-align: center;
+  }
+}
+
+/* Integration with existing tooltip system */
+.furnace-panel .tooltip .tooltiptext {
+  background-color: #343a40;
+  border: 2px solid #dc3545;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}

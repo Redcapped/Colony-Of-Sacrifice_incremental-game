@@ -1,12 +1,14 @@
 import {gameData} from './gamedata.js'
-import { performSacrifice,capitalize,getTotalAnts,buyBuilding} from './coregame.js';
+import { capitalize,getTotalAnts,buyBuilding,updateTimerDisplay} from './coregame.js';
 import { updateBuildingText } from './game.js';
+import { adjustSacrificeLevel,performSacrifice,buyTotem } from './sacrifice.js';
 export function buildUI(){
       buildResourceUI();
       buildAntUI();
       buildStatUI();
       buildBuildingUI();
       buildSacrificeUI();
+      buildFurnaceUI();
 }
 function buildAntUI() {
   const section = document.getElementById("antSection");
@@ -368,4 +370,57 @@ function enableTooltips() {
     });
   });
 }
-
+function buildFurnaceUI() {
+  const container = document.getElementById('furnaceContainer');
+  if (!container) {
+    console.warn('Furnace container not found');
+    return;
+  }
+  
+  container.innerHTML = `
+    <div class="furnace-panel">
+      <h3>Furnace</h3>
+      
+      <div class="timer-setting">
+        <h4>Set Timer Duration</h4>
+        <div class="timer-controls">
+          <input type="range" id="timerSlider" min="1000" max="15000" step="100" value="${gameData.furnaceData.playerSetTime}">
+          <span id="timerDisplay">${(gameData.furnaceData.playerSetTime / 1000).toFixed(1)}s</span>
+        </div>
+        <div class="preset-buttons">
+          <button class="preset-btn" onclick="setPresetTime(3000)">3s</button>
+          <button class="preset-btn" onclick="setPresetTime(5000)">5s</button>
+          <button class="preset-btn" onclick="setPresetTime(7000)">7s</button>
+          <button class="preset-btn" onclick="setPresetTime(10000)">10s</button>
+        </div>
+      </div>
+      
+      <div class="furnace-status">
+        <div id="furnaceTimer">Ready</div>
+        <div id="furnaceProgress"></div>
+        <button id="furnaceStopBtn" class="main-btn" style="display:none" onclick="handleStopSmelt()">
+          Stop Early
+        </button>
+      </div>
+      
+      <div class="recipe-selection">
+        <h4>Recipes</h4>
+        <div id="recipeButtons"></div>
+      </div>
+      
+      <div class="attempt-history">
+        <h4>Attempt History</h4>
+        <div id="attemptHistory"></div>
+      </div>
+    </div>
+  `;
+  
+  // Add event listener for timer slider
+  const slider = document.getElementById('timerSlider');
+  if (slider) {
+    slider.addEventListener('input', function() {
+      gameData.furnaceData.playerSetTime = parseInt(this.value);
+      updateTimerDisplay();
+    });
+  }
+}

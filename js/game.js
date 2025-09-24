@@ -1,9 +1,9 @@
 // ----------------- Imports -----------------
-import { capitalize, collectResource,update_resource, adjustSacLevel,adjustAnt, recruitAnt, buyBuilding, updateGameTick,getTotalAnts} from './coregame.js';
+import { initFurnace,resetFurnace,capitalize, collectResource,update_resource,adjustAnt, recruitAnt, buyBuilding, updateGameTick,getTotalAnts} from './coregame.js';
 import { initTechTree } from './techTree.js';
 import {getDefaultGameData,gameData} from './gamedata.js'
-import { buildUI } from './buildUI.js';
-import { buildStatUI } from './buildUI.js';
+import { buildUI,buildStatUI } from './buildUI.js';
+
 // ----------------- Tabs -----------------
 export function openTab(tabName) {
   document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
@@ -112,7 +112,8 @@ export function initGame() {
   buildUI();
   update_resource();
   update_unlocks();
-  
+  initFurnace();
+
   // ----------------- Intervals -----------------
   setInterval(updateGameTick, 1000 / gameData.gameUpdateRate);
   setInterval(saveGame, 10000);
@@ -129,6 +130,7 @@ export function initGame() {
    // Research subtabs
   document.getElementById('antsAssignmentBtn')?.addEventListener('click', () => openAntsTab('assignment'));
   document.getElementById('antsSacrificeBtn')?.addEventListener('click', () => openAntsTab('sacrifice'));
+  document.getElementById('antsFurnaceBtn')?.addEventListener('click', () => openAntsTab('furnace'));
   // Ant assignment
   document.getElementById('btnAntWaterMinus')?.addEventListener('click', () => adjustAnt('water', -1));
   document.getElementById('btnAntWaterPlus')?.addEventListener('click', () => adjustAnt('water', 1));
@@ -140,10 +142,6 @@ export function initGame() {
   document.getElementById('btnAntLumberPlus')?.addEventListener('click', () => adjustAnt('lumber', 1));
   document.getElementById('btnAntScienceMinus')?.addEventListener('click', () => adjustAnt('science', -1));
   document.getElementById('btnAntSciencePlus')?.addEventListener('click', () => adjustAnt('science', 1));
-  // Ant sacrifice
-  document.getElementById('btnSacMinus')?.addEventListener('click', () => adjustSacLevel(-1));
-  document.getElementById('btnSacPlus')?.addEventListener('click', () => adjustSacLevel(1));
-
 
   // Tabs
   document.getElementById('tabMainBtn')?.addEventListener('click', () => openTab('main'));
@@ -158,6 +156,7 @@ export function initGame() {
 
   // Reset button
   document.getElementById('resetGameBtn')?.addEventListener('click', resetGame);
+  saveGame()
 }
 export function updateBuildingText(buildingName){
 const building = gameData.buildings[buildingName]
@@ -182,7 +181,7 @@ btn.innerText = `${capitalize(buildingName)}  (${building.level})`
 export function resetGame() {
 
   if (!confirm("Are you sure you want to reset your game?")) return;
-
+  resetFurnace();
   const defaults = getDefaultGameData();
   for (let key in defaults) {
     gameData[key] = defaults[key];

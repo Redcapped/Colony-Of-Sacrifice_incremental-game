@@ -1,6 +1,7 @@
 // ----------------- Game Data -----------------
 import {updateBuildingText} from './game.js';
-import {gameData} from './gamedata.js'
+import {gameData} from './gamedata.js';
+import { updateSacrificeUI,updateActiveSacrifices  } from "./sacrifice.js";
 
 export function updateGameTick(){
   resetResourceGains();
@@ -8,252 +9,121 @@ export function updateGameTick(){
   breedAnts();
   autoCollect();
   updateActiveSacrifices();
+  updateFurnaceUI();
   update_resource();
 
 }
-export function updateSacrificeUI() {
-  // Check all active cooldowns and update buttons if needed
-  for (const sacName in gameData.sacrifice.types) {
-    const isActive = isSacrificeActive(sacName);
-    const effectTimeRemaining = getActiveSacrificeTimeRemaining(sacName);
-    
-    const btn = document.getElementById(`btnSacrifice${capitalize(sacName)}`);
-    const tooltip = document.getElementById(`sac${capitalize(sacName)}Tooltip`);    
-    const freeAntsSpan = document.getElementById(`freeAntsSac`);
-
-    if (freeAntsSpan) {
-      freeAntsSpan.innerHTML = `Amount of free ants: ${gameData.ants.assignedAnts.free}`;
-    }
-
-    if (!btn || !tooltip) continue; // Use continue instead of return to process other sacrifices
-
-    const sacrifice = gameData.sacrifice.types[sacName];
-    const currentTime = Date.now();
-    const totalCooldown = (sacrifice.cooldown + gameData.sacrifice.cooldownAdd) * gameData.sacrifice.cooldownMult * 1000;
-    
-    // Calculate cooldown time remaining
-    const cooldownTimeRemaining = sacrifice.isOnCooldown 
-      ? Math.max(0, Math.ceil((sacrifice.lastUse + totalCooldown - currentTime) / 1000))
-      : 0;
-
-    // Update button state based on cooldown
-    if (sacrifice.isOnCooldown && cooldownTimeRemaining > 0) {
-      btn.disabled = true;
-      btn.textContent = `${sacName} (${cooldownTimeRemaining}s)`;
-      
-      // Show cooldown info, and effect info if active
-      let tooltipContent = `Not useable for ${cooldownTimeRemaining} seconds<br><hr>`;
-      
-      if (isActive && effectTimeRemaining > 0) {
-        tooltipContent += `Effect lasts for ${effectTimeRemaining} more seconds<br><hr>`;
-      }
-      
-      tooltipContent += `${sacrifice.tooltipText}<br>`;
-      tooltipContent += `Sacrifice ${sacrifice.baseAntcost * gameData.sacrifice.globalLevel} ant(s) and ${sacrifice.baseBloodcost * gameData.sacrifice.globalLevel} blood to gain ${sacrifice.baseEffect * gameData.sacrifice.globalLevel} ${sacrifice.effectText}`;
-      
-      tooltip.innerHTML = tooltipContent;
-      
-    } else {
-      // Sacrifice is available
-      btn.disabled = false;
-      btn.textContent = capitalize(sacName);
-      
-      let tooltipContent = `${sacrifice.tooltipText}<br><hr>`;
-      
-      if (isActive && effectTimeRemaining > 0) {
-        tooltipContent += `Currently active - ${effectTimeRemaining}s remaining<br><hr>`;
-      }
-      
-      tooltipContent += `Sacrifice ${sacrifice.baseAntcost * gameData.sacrifice.globalLevel} ant(s) and ${sacrifice.baseBloodcost * gameData.sacrifice.globalLevel} blood to gain ${sacrifice.baseEffect * gameData.sacrifice.globalLevel} ${sacrifice.effectText}`;
-      
-      tooltip.innerHTML = tooltipContent;
-    }
-  }
-}
-
-// You'll also need to update the cooldown checking logic since the new system 
-// handles effect removal automatically. Here's a simplified cooldown update:
-export function updateSacrificeCooldowns() {
-  const currentTime = Date.now();
-  
-  for (const sacName in gameData.sacrifice.types) {
-    const sacrifice = gameData.sacrifice.types[sacName];
-    
-    if (sacrifice.isOnCooldown) {
-      const totalCooldown = (sacrifice.cooldown + gameData.sacrifice.cooldownAdd) * gameData.sacrifice.cooldownMult * 1000;
-      
-      if (currentTime >= sacrifice.lastUse + totalCooldown) {
-        sacrifice.isOnCooldown = false;
-      }
-    }
-  }
-}
-
-// Updated sacrifice functions
-export function performSacrifice(sacrificeType) {
-  const sacrifice = gameData.sacrifice.types[sacrificeType];
-  if (!sacrifice || !sacrifice.unlocked) {
-    alert(`${capitalize(sacrificeType)} is not available!`);
-    return false;
-  }
-  
-  // Check costs
-  if (sacrifice.baseAntcost * gameData.sacrifice.globalLevel > gameData.ants.assignedAnts.free) {
-    alert(`Not enough ants`);
-    return false;
-  }
-  
-  if (sacrifice.baseBloodcost * gameData.sacrifice.globalLevel > gameData.resources.blood.amount) {
-    alert(`Not enough blood`);
-    return false;
-  }
-
-  // Remove costs
-  gameData.ants.assignedAnts.free -= sacrifice.baseAntcost;
-  gameData.resources.blood.amount -= sacrifice.baseBloodcost;
-  
-  // Start cooldown
-  const currentTime = Date.now();
-  sacrifice.lastUse = currentTime;
-  sacrifice.isOnCooldown = true;
-  
-  // Apply effect
-  applySacrificeEffect(sacrificeType);
-  
-  update_resource();
+export function update_resource() {
+  update_resourcesUI();
+  update_antsUI();
   updateSacrificeUI();
-  return true;
 }
-
-function applySacrificeEffect(sacrificeType) {
-  const sacrifice = gameData.sacrifice.types[sacrificeType];
-  const currentTime = Date.now();
-  const effectValue = sacrifice.baseEffect * gameData.sacrifice.globalLevel;
-  const duration = (sacrifice.duration + gameData.sacrifice.durationAdd) * gameData.sacrifice.durationMult * 1000;
-  
-  if (sacrifice.effectType === 'instant') {
-    // Handle instant effects (like ant sacrifice)
-    switch (sacrificeType) {
-      case 'ant':
-        gameData.resources.blood.amount = Math.min(
-          gameData.resources.blood.amount + effectValue,
-          gameData.resources.blood.max
-        );
-        gameData.resources.sugar.amount = Math.min(
-          gameData.resources.sugar.amount + effectValue,
-          gameData.resources.sugar.max
-        );
-        break;
+export function update_resourcesUI() {
+  for (let key in gameData.resources) {
+    const res = gameData.resources[key];
+    const span = document.getElementById(key + "Amount");
+    const bar = document.getElementById(key + "Bar");
+    const info = document.getElementById(key + "Info");
+    const net = document.getElementById(key + "Net");
+    const resStoreageMax = maxStorageResource(key)
+    if (span) span.innerText = `${Math.floor(res.amount)}/${resStoreageMax}`;
+    if (bar) {
+      bar.value = res.amount;
+      bar.max = resStoreageMax;
     }
-  } else {
-    // Handle duration-based effects
-    const activeSacrifice = {
-      type: sacrificeType,
-      startTime: currentTime,
-      duration: duration,
-      effectType: sacrifice.effectType,
-      targetResource: sacrifice.targetResource,
-      effectValue: effectValue,
-      level: gameData.sacrifice.globalLevel
-    };
     
-    // Add to active sacrifices
-    gameData.sacrifice.activeSacrifices.push(activeSacrifice);
-    
-    // Apply the effect immediately
-    applyActiveEffect(activeSacrifice, 1); // 1 = apply, -1 = remove
-  }
-}
+    if (res.info) {
+      const gain = res.info.gain * gameData.gameUpdateRate;
+      const loss = (res.info.loss || 0) * gameData.gameUpdateRate;
+      var netgain = gain - loss;
+      
+      // Calculate what ants WANT to produce (ideal production)
+      const idealProduction = maxProductionResource(key) * gameData.gameUpdateRate;
+      
+      let color = "gray";
+      let timeText = "";
+      let productionInfo = "";
 
-function applyActiveEffect(activeSacrifice, direction) {
-  const { effectType, targetResource, effectValue } = activeSacrifice;
-  
-  switch (effectType) {
-    case 'bonusProdMul':
-      if (targetResource && gameData.resources[targetResource]) {
-        const multiplierChange = (effectValue - 1) * direction;
-        gameData.resources[targetResource].bonusProdMul += multiplierChange;
-      }
-      break;
-      
-    case 'bonusMaxMul':
-      if (targetResource && gameData.resources[targetResource]) {
-        const multiplierChange = (effectValue - 1) * direction;
-        gameData.resources[targetResource].bonusMaxMul += multiplierChange;
-      }
-      break;
-      
-    case 'bonusProdAdd':
-      if (targetResource && gameData.resources[targetResource]) {
-        gameData.resources[targetResource].bonusProdAdd += effectValue * direction;
-      }
-      break;
-      
-    case 'bonusMaxAdd':
-      if (targetResource && gameData.resources[targetResource]) {
-        gameData.resources[targetResource].bonusMaxAdd += effectValue * direction;
-      }
-      break;
-      
-    case 'breedingSpeed':
-      if (direction === 1) {
-        gameData.ants.breeding.sacrificeFactor *= effectValue;
+      if (res.amount >= resStoreageMax) {
+        // Storage is full
+        timeText = "FULL";
+        color = "gray";
+        
+        if (idealProduction > gain) {
+          const overproduction = idealProduction - gain;
+          productionInfo = ` (wasting ${overproduction.toFixed(2)}/s)`;
+          netgain = overproduction
+        }
+        
+      } else if (res.amount <= 0.1) {
+        // Storage is empty/very low
+        timeText = "EMPTY";
+        color = "red";
+        
+        if (idealProduction < Math.abs(loss)) {
+          const underproduction = Math.abs(loss) - idealProduction;
+          productionInfo = ` (need +${underproduction.toFixed(2)}/s more)`;
+          netgain = -underproduction
+        }
+        
       } else {
-        gameData.ants.breeding.sacrificeFactor /= effectValue;
+        // Normal operation
+        if (netgain > 0) {
+          const timeToFull = (resStoreageMax - res.amount) / netgain;
+          timeText = `Full in ${Math.ceil(timeToFull)}s`;
+          color = "green";
+        } else if (netgain < -0.1) {
+          const timeToEmpty = res.amount / Math.abs(netgain);
+          timeText = `Empty in ${Math.ceil(timeToEmpty)}s`;
+          color = "red";
+        } else {
+          timeText = "Stable";
+          color = "gray";
+        }
       }
-      break;
-  }
-}
 
-// Function to update active sacrifices (call this in your main game loop)
-export function updateActiveSacrifices() {
-  const currentTime = Date.now();
-  const activeSacrifices = gameData.sacrifice.activeSacrifices;
-  
-  // Check for expired sacrifices
-  for (let i = activeSacrifices.length - 1; i >= 0; i--) {
-    const activeSacrifice = activeSacrifices[i];
-    
-    if (currentTime >= activeSacrifice.startTime + activeSacrifice.duration) {
-      // Remove the effect
-      applyActiveEffect(activeSacrifice, -1);
+      if (info) {
+        info.innerText = `+${gain.toFixed(2)}/s -${loss.toFixed(2)}/s = ${netgain.toFixed(2)}/s | ${timeText}${productionInfo}`;
+        info.style.color = color;
+      }
       
-      // Remove from active sacrifices array
-      activeSacrifices.splice(i, 1);
-      
-      console.log(`${activeSacrifice.type} sacrifice effect expired`);
-    }
-  }
-  
-  // Update cooldowns
-  for (const sacName in gameData.sacrifice.types) {
-    const sacrifice = gameData.sacrifice.types[sacName];
-    if (sacrifice.isOnCooldown) {
-      const totalCooldown = (sacrifice.cooldown + gameData.sacrifice.cooldownAdd) * gameData.sacrifice.cooldownMult * 1000;
-      
-      if (currentTime >= sacrifice.lastUse + totalCooldown) {
-        sacrifice.isOnCooldown = false;
+      if (net) {
+        net.innerText = netgain.toFixed(2);
+        net.style.color = color;
       }
     }
   }
 }
+export function update_antsUI() {
+  // Total assigned ants
+  const totalAnts = Object.values(gameData.ants.assignedAnts).reduce((a, b) => a + b, 0);
+  const antCount = document.getElementById("antCount");
+  if (antCount) antCount.innerText = `${totalAnts}/${gameData.ants.maxAnts}`;
 
-// Helper function to get remaining time for active sacrifices
-export function getActiveSacrificeTimeRemaining(sacrificeType) {
-  const currentTime = Date.now();
-  const activeSacrifice = gameData.sacrifice.activeSacrifices.find(s => s.type === sacrificeType);
-  
-  if (activeSacrifice) {
-    const timeRemaining = (activeSacrifice.startTime + activeSacrifice.duration) - currentTime;
-    return Math.max(0, Math.ceil(timeRemaining / 1000));
-  }
-  
-  return 0;
-}
+  // Assigned ant types
+  const antTypes = ["water", "wood", "sugar", "lumber", "stone", "science"];
+  antTypes.forEach(type => {
+    const span = document.getElementById(`ants${capitalize(type)}`);
+    if (span) {
+      const assigned = gameData.ants.assignedAnts[type];
+      const max = gameData.ants.assignedLimits[type];
 
-// Helper function to check if a sacrifice is currently active
-export function isSacrificeActive(sacrificeType) {
-  return gameData.sacrifice.activeSacrifices.some(s => s.type === sacrificeType);
+      let displayMax;
+      if (typeof max === "number" && max > 0) {
+        displayMax = `/${max}`;
+      } else {
+        displayMax = "";
+      }
+      span.innerText = `${assigned}${displayMax}`;
+          }
+  });
+
+  // Free ants
+  const container = document.getElementById("freeAntsValue");
+  if (container) container.innerText = `Free ants ${gameData.ants.assignedAnts['free']}`;
+
+  // Breeding info
+  update_breedingBar();
 }
 export function collectResource(key, amount) {
   // only for player buttons
@@ -396,113 +266,6 @@ export function resetResourceGains() {
     res.info.loss = 0;
   }
 }
-export function update_resourcesUI() {
-  for (let key in gameData.resources) {
-    const res = gameData.resources[key];
-    const span = document.getElementById(key + "Amount");
-    const bar = document.getElementById(key + "Bar");
-    const info = document.getElementById(key + "Info");
-    const net = document.getElementById(key + "Net");
-    const resStoreageMax = maxStorageResource(key)
-    if (span) span.innerText = `${Math.floor(res.amount)}/${resStoreageMax}`;
-    if (bar) {
-      bar.value = res.amount;
-      bar.max = resStoreageMax;
-    }
-    
-    if (res.info) {
-      const gain = res.info.gain * gameData.gameUpdateRate;
-      const loss = (res.info.loss || 0) * gameData.gameUpdateRate;
-      var netgain = gain - loss;
-      
-      // Calculate what ants WANT to produce (ideal production)
-      const idealProduction = maxProductionResource(key) * gameData.gameUpdateRate;
-      
-      let color = "gray";
-      let timeText = "";
-      let productionInfo = "";
-
-      if (res.amount >= resStoreageMax) {
-        // Storage is full
-        timeText = "FULL";
-        color = "gray";
-        
-        if (idealProduction > gain) {
-          const overproduction = idealProduction - gain;
-          productionInfo = ` (wasting ${overproduction.toFixed(2)}/s)`;
-          netgain = overproduction
-        }
-        
-      } else if (res.amount <= 0.1) {
-        // Storage is empty/very low
-        timeText = "EMPTY";
-        color = "red";
-        
-        if (idealProduction < Math.abs(loss)) {
-          const underproduction = Math.abs(loss) - idealProduction;
-          productionInfo = ` (need +${underproduction.toFixed(2)}/s more)`;
-          netgain = -underproduction
-        }
-        
-      } else {
-        // Normal operation
-        if (netgain > 0) {
-          const timeToFull = (resStoreageMax - res.amount) / netgain;
-          timeText = `Full in ${Math.ceil(timeToFull)}s`;
-          color = "green";
-        } else if (netgain < -0.1) {
-          const timeToEmpty = res.amount / Math.abs(netgain);
-          timeText = `Empty in ${Math.ceil(timeToEmpty)}s`;
-          color = "red";
-        } else {
-          timeText = "Stable";
-          color = "gray";
-        }
-      }
-
-      if (info) {
-        info.innerText = `+${gain.toFixed(2)}/s -${loss.toFixed(2)}/s = ${netgain.toFixed(2)}/s | ${timeText}${productionInfo}`;
-        info.style.color = color;
-      }
-      
-      if (net) {
-        net.innerText = netgain.toFixed(2);
-        net.style.color = color;
-      }
-    }
-  }
-}
-export function update_antsUI() {
-  // Total assigned ants
-  const totalAnts = Object.values(gameData.ants.assignedAnts).reduce((a, b) => a + b, 0);
-  const antCount = document.getElementById("antCount");
-  if (antCount) antCount.innerText = `${totalAnts}/${gameData.ants.maxAnts}`;
-
-  // Assigned ant types
-  const antTypes = ["water", "wood", "sugar", "lumber", "stone", "science"];
-  antTypes.forEach(type => {
-    const span = document.getElementById(`ants${capitalize(type)}`);
-    if (span) {
-      const assigned = gameData.ants.assignedAnts[type];
-      const max = gameData.ants.assignedLimits[type];
-
-      let displayMax;
-      if (typeof max === "number" && max > 0) {
-        displayMax = `/${max}`;
-      } else {
-        displayMax = "";
-      }
-      span.innerText = `${assigned}${displayMax}`;
-          }
-  });
-
-  // Free ants
-  const container = document.getElementById("freeAntsValue");
-  if (container) container.innerText = `Free ants ${gameData.ants.assignedAnts['free']}`;
-
-  // Breeding info
-  update_breedingBar();
-}
 export function update_breedingBar() {
   const container = document.getElementById("breedingContainer");
   const bar = document.getElementById("breedingBar");
@@ -516,11 +279,6 @@ export function update_breedingBar() {
   if (container) container.style.display = "block";
   if (bar) bar.value = breeding.partialAnts || 0;
   if (percent) percent.innerText = `breeding progress: ${Math.floor((breeding.partialAnts || 0) * 100)}%`;
-}
-export function update_resource() {
-  update_resourcesUI();
-  update_antsUI();
-  updateSacrificeUI();
 }
 export function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
@@ -537,11 +295,6 @@ export function adjustAnt(resource, delta){
 
   else if(delta<0 && gameData.ants.assignedAnts[resource]>0){ gameData.ants.assignedAnts.free++; gameData.ants.assignedAnts[resource]--; }
   update_resource();
-}
-export function adjustSacLevel(delta){
-if (delta > 0 && gameData.sacrifice.globalLevel < gameData.sacrifice.globalMaxLevel){gameData.sacrifice.globalLevel += delta}
-if (delta < 0 && gameData.sacrifice.globalLevel > 0){gameData.sacrifice.globalLevel += delta}
-
 }
 function maxProductionResource(resource){
   const res = gameData.resources[resource]
@@ -711,4 +464,318 @@ export function breedAnts() {
       
     }
   }
+}
+
+// Initialize furnace system and generate fixed target times
+export function initFurnace() {
+  // Generate fixed target times if they haven't been set yet
+  generateFixedTargetTimes();
+  
+  // Add other smelting resources as needed...
+  const smeltingResources = ['charcoal', 'iron'];
+  smeltingResources.forEach(resource => {
+    if (!gameData.resources[resource]) {
+      gameData.resources[resource] = {
+        amount: 0,
+        max: 50,
+        unlocked: false,
+        cost: {},
+        prodFactor: 1,
+        passive: 0,
+        assigned: resource,
+        bonusMaxAdd: 0,
+        bonusMaxMul: 1,
+        bonusProdAdd: 0,
+        bonusProdMul: 1
+      };
+    }
+  });
+}
+
+// Generate fixed target times for all recipes (called once at game start)
+function generateFixedTargetTimes() {
+  for (const [recipeKey, recipe] of Object.entries(gameData.furnaceData.recipes)) {
+    if (recipe.targetTime === null) {
+      recipe.targetTime = Math.random() * (recipe.maxTime - recipe.minTime) + recipe.minTime;
+    }
+  }
+}
+
+// Check if recipe ingredients are available
+function canCraftRecipe(recipeKey) {
+  const recipe = gameData.furnaceData.recipes[recipeKey];
+  if (!recipe) return false;
+  
+  for (const [resource, needed] of Object.entries(recipe.inputs)) {
+    if (!gameData.resources[resource] || gameData.resources[resource].amount < needed) {
+      return false;
+    }
+  }
+  return true;
+}
+
+// Start smelting process with player-set time
+export function startSmelt(recipeKey) {
+  if (gameData.furnaceData.isRunning) return;
+  
+  const recipe = gameData.furnaceData.recipes[recipeKey];
+  if (!recipe || !canCraftRecipe(recipeKey)) return;
+  
+  // Consume ingredients
+  for (const [resource, needed] of Object.entries(recipe.inputs)) {
+    gameData.resources[resource].amount -= needed;
+  }
+  
+  // Use the fixed target time for this recipe
+  const targetTime = recipe.targetTime;
+  
+  // Set up smelt with player's chosen duration
+  gameData.furnaceData.currentSmelt = {
+    recipe: recipeKey,
+    targetTime: targetTime,
+    tolerance: recipe.tolerance,
+    playerDuration: gameData.furnaceData.playerSetTime
+  };
+  
+  gameData.furnaceData.smeltStartTime = Date.now();
+  gameData.furnaceData.isRunning = true;
+  
+  // Set timer to auto-stop after player's set time
+  setTimeout(() => {
+    if (gameData.furnaceData.isRunning && gameData.furnaceData.currentSmelt) {
+      autoStopSmelt();
+    }
+  }, gameData.furnaceData.playerSetTime);
+  
+  updateFurnaceUI();
+  update_resource();
+}
+
+// Automatically stop smelt when timer runs out
+function autoStopSmelt() {
+  if (!gameData.furnaceData.isRunning || !gameData.furnaceData.currentSmelt) return;
+  
+  const result = stopSmelt();
+  if (result) {
+    // Show notification that the smelt completed automatically
+    showSmeltResult(`Auto-completed: ${result.result}`, result.success);
+  }
+}
+
+// Show smelt result (you can customize this notification)
+function showSmeltResult(message, success) {
+  // For now, just log it - you can integrate with your game's notification system
+  console.log(message);
+  
+  // You could show a popup, add to event log, or use any notification system you have
+  // Example: addToEventLog(message, success ? 'success' : 'failure');
+}
+
+// Stop smelting and get result
+export function stopSmelt() {
+  if (!gameData.furnaceData.isRunning || !gameData.furnaceData.currentSmelt) return;
+  
+  const elapsedTime = Date.now() - gameData.furnaceData.smeltStartTime;
+  const smelt = gameData.furnaceData.currentSmelt;
+  const recipe = gameData.furnaceData.recipes[smelt.recipe];
+  const targetTime = smelt.targetTime; // Use the fixed target time
+  const tolerance = smelt.tolerance;
+  
+  let result;
+  let success = false;
+  
+  // Determine result
+  if (elapsedTime < targetTime - tolerance) {
+    result = 'Too Short';
+  } else if (elapsedTime > targetTime + tolerance) {
+    result = 'Burnt';
+  } else {
+    result = 'Perfect!';
+    success = true;
+    
+    // Give output on perfect smelt
+    for (const [resource, amount] of Object.entries(recipe.output)) {
+      gameData.resources[resource].amount += amount;
+    }
+  }
+  
+  // Record attempt with both elapsed time and player's set time
+  const attempt = {
+    elapsedTime: Math.round(elapsedTime),
+    playerSetTime: Math.round(smelt.playerDuration),
+    targetTime: Math.round(targetTime), // For debugging - you might want to hide this
+    result: result,
+    timestamp: new Date().toLocaleTimeString()
+  };
+  
+  recipe.attempts.push(attempt);
+  
+  // Keep only last 10 attempts
+  if (recipe.attempts.length > 10) {
+    recipe.attempts.shift();
+  }
+  
+  // Reset furnace state
+  gameData.furnaceData.currentSmelt = null;
+  gameData.furnaceData.smeltStartTime = null;
+  gameData.furnaceData.isRunning = false;
+  
+  updateFurnaceUI();
+  update_resource();
+  
+  return { result, attempt, success };
+}
+
+// Get current smelting time
+export function getCurrentSmeltTime() {
+  if (!gameData.furnaceData.isRunning) return 0;
+  return Date.now() - gameData.furnaceData.smeltStartTime;
+}
+
+// Build furnace UI
+
+
+// Update timer display
+export function updateTimerDisplay() {
+  const display = document.getElementById('timerDisplay');
+  if (display) {
+    display.textContent = `${(gameData.furnaceData.playerSetTime / 1000).toFixed(1)}s`;
+  }
+}
+
+// Set preset time (called from HTML buttons)
+window.setPresetTime = function(time) {
+  gameData.furnaceData.playerSetTime = time;
+  const slider = document.getElementById('timerSlider');
+  if (slider) slider.value = time;
+  updateTimerDisplay();
+};
+
+// Update recipe buttons
+function updateRecipeButtons() {
+  const container = document.getElementById('recipeButtons');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  
+  for (const [recipeKey, recipe] of Object.entries(gameData.furnaceData.recipes)) {
+    const canCraft = canCraftRecipe(recipeKey);
+    
+    const button = document.createElement('button');
+    button.className = `main-btn recipe-btn ${canCraft ? '' : 'disabled'}`;
+    button.disabled = !canCraft || gameData.furnaceData.isRunning;
+    button.onclick = () => startSmelt(recipeKey);
+    
+    const inputText = Object.entries(recipe.inputs)
+      .map(([res, amt]) => `${amt} ${res}`)
+      .join(' + ');
+    
+    const outputText = Object.entries(recipe.output)
+      .map(([res, amt]) => `${amt} ${res}`)
+      .join(' + ');
+    
+    button.innerHTML = `
+      <div class="recipe-name">${recipe.name}</div>
+      <div class="recipe-formula">${inputText} → ${outputText}</div>
+      <div class="recipe-time">Time: ${recipe.minTime/1000}s - ${recipe.maxTime/1000}s</div>
+    `;
+    
+    container.appendChild(button);
+  }
+}
+
+// Update furnace UI
+function updateFurnaceUI() {
+  updateRecipeButtons();
+  
+  const timer = document.getElementById('furnaceTimer');
+  const progress = document.getElementById('furnaceProgress');
+  const stopBtn = document.getElementById('furnaceStopBtn');
+  
+  if (gameData.furnaceData.isRunning && timer) {
+    const elapsed = getCurrentSmeltTime();
+    const playerDuration = gameData.furnaceData.currentSmelt.playerDuration;
+    const progressPercent = Math.min((elapsed / playerDuration) * 100, 100);
+    
+    timer.textContent = `Smelting... ${(elapsed / 1000).toFixed(1)}s / ${(playerDuration / 1000).toFixed(1)}s`;
+    
+    if (progress) {
+      progress.innerHTML = `<div class="progress-bar" style="width: ${progressPercent}%"></div>`;
+    }
+    
+    if (stopBtn) stopBtn.style.display = 'block';
+  } else {
+    if (timer) timer.textContent = 'Ready';
+    if (progress) progress.innerHTML = '';
+    if (stopBtn) stopBtn.style.display = 'none';
+  }
+  
+  updateAttemptHistory();
+}
+
+// Update attempt history display
+function updateAttemptHistory() {
+  const container = document.getElementById('attemptHistory');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  
+  for (const [recipeKey, recipe] of Object.entries(gameData.furnaceData.recipes)) {
+    if (recipe.attempts.length === 0) continue;
+    
+    const section = document.createElement('div');
+    section.className = 'recipe-history';
+    
+    const header = document.createElement('h5');
+    header.textContent = recipe.name;
+    section.appendChild(header);
+    
+    const historyList = document.createElement('div');
+    historyList.className = 'history-list';
+    
+    recipe.attempts.slice(-5).reverse().forEach(attempt => {
+      const item = document.createElement('div');
+      item.className = `history-item ${attempt.result.toLowerCase().replace(/\s+/g, '-')}`;
+      
+      item.innerHTML = `
+        <span class="attempt-time">${(attempt.elapsedTime / 1000).toFixed(1)}s</span>
+        <span class="attempt-result">${attempt.result}</span>
+        <span class="attempt-timestamp">${attempt.timestamp}</span>
+      `;
+      
+      historyList.appendChild(item);
+    });
+    
+    section.appendChild(historyList);
+    container.appendChild(section);
+  }
+}
+
+// Global function for stop button (called from HTML)
+window.handleStopSmelt = function() {
+  const result = stopSmelt();
+  if (result) {
+    // Show result notification (you can customize this)
+    console.log(`Smelt result: ${result.result} (${result.attempt.elapsedTime}ms)`);
+  }
+};
+
+// Reset furnace data for new game (call this from your game reset function)
+export function resetFurnace() {
+  // Reset all target times to null so they'll be regenerated
+  for (const recipe of Object.values(gameData.furnaceData.recipes)) {
+    recipe.targetTime = null;
+    recipe.attempts = [];
+  }
+  
+  // Reset furnace state
+  gameData.furnaceData.currentSmelt = null;
+  gameData.furnaceData.smeltStartTime = null;
+  gameData.furnaceData.isRunning = false;
+  gameData.furnaceData.playerSetTime = 5000; // Reset to default 5 seconds
+  
+  // Regenerate new fixed target times
+  generateFixedTargetTimes();
+  
+  
 }

@@ -100,7 +100,7 @@ export const techTree = [
     name:'A home for ants',
     desc:'Allows building anthill to increase max ants.',
     cost:{sugar:20, wood:10},
-    prereq:['pheromones','woodUnlock'],
+    prereq:['woodUnlock'],
     effect:()=>{ gameData.buildings.anthut.unlocked = true;
       update_unlocks();
       update_resourcesUI();
@@ -118,7 +118,7 @@ export const techTree = [
     update_unlocks();}
   },
   {
-    id:'cheaperSugar',
+    id:'sugarProd 1',
     name:'Building a bridge',
     desc:'The ants make a faster way to the sugar. <br> Decreases the cost of sugar by 1 water',
     cost:{lumber:10},
@@ -233,7 +233,7 @@ export const techTree = [
     update_unlocks();}
   },
     {
-  id: 'pheromones 3',
+  id: 'libraryUnlock',
   name: 'library',
   desc: 'place to store the science',
   cost: { science: 100 },
@@ -243,13 +243,13 @@ export const techTree = [
     update_unlocks();}
   },
   {
-  id: 'termite 2',
+  id: 'woodCost 1',
   name: 'copy the termites',
-  desc: 'make lumber a bit cheaper',
+  desc: 'make wood a bit cheaper',
   cost: { science: 25 },
   prereq: ['stone 1'], 
   effect: () => {
-    gameData.resources.lumber.cost.wood -= 5
+    gameData.resources.wood.cost.water -= 1
     update_unlocks();}
   },
   {
