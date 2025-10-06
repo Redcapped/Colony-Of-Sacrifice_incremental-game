@@ -34,6 +34,10 @@ body {
 .tab { display: none; }
 .tab.active { display: block; }
 
+/* Main subtabs */
+.main-subtab { display: none; }
+.main-subtab.active { display: block; }
+
 .tab-bar {
   width: 100%;
   background-color: #303438;
@@ -1267,4 +1271,169 @@ progress::-moz-progress-bar {
   background-color: #343a40;
   border: 2px solid #dc3545;
   box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.furnace-panel .tooltip .tooltiptext {
+  font-size: 13px;
+  padding: 8px 12px;
+  max-width: 250px;
+  text-align: left;
+}
+
+.furnace-panel .tooltip .tooltiptext.top {
+  bottom: 125%;
+  top: auto;
+}
+
+/* New Furnace Section Styles */
+.furnace-section {
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px 0;
+}
+
+/* Recipe dropdown */
+.recipe-dropdown {
+  width: 100%;
+  padding: 12px;
+  font-size: 1.1em;
+  background: #fff;
+  color: #333;
+  border: 2px solid #ff6600;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 15px;
+  transition: all 0.2s ease;
+}
+
+.recipe-dropdown:hover {
+  background: #fff3e0;
+  border-color: #ff8833;
+  box-shadow: 0 2px 8px rgba(255, 102, 0, 0.2);
+}
+
+.recipe-dropdown:focus {
+  outline: none;
+  border-color: #ff8833;
+  box-shadow: 0 0 0 3px rgba(255, 102, 0, 0.1);
+}
+
+.recipe-dropdown option {
+  background: #fff;
+  color: #333;
+  padding: 8px;
+}
+
+.recipe-dropdown option:disabled {
+  color: #999;
+  background: #f5f5f5;
+}
+
+/* Recipe info display */
+.recipe-info {
+  background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+  border: 2px solid #ff9800;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px 0;
+}
+
+.recipe-info p {
+  margin: 10px 0;
+  color: #333;
+  font-size: 1.05em;
+}
+
+.recipe-info strong {
+  color: #e65100;
+  font-weight: 600;
+}
+
+.recipe-info span {
+  color: #d84315;
+  font-weight: 500;
+}
+
+/* History item styling for new layout */
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  margin: 8px 0;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.history-item .history-icon {
+  font-size: 1.5em;
+  font-weight: bold;
+  margin-right: 15px;
+}
+
+.history-item.success {
+  background: linear-gradient(135deg, #d4edda, #c3e6cb);
+  border-left: 4px solid #28a745;
+}
+
+.history-item.success .history-icon {
+  color: #28a745;
+}
+
+.history-item.failure {
+  background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+  border-left: 4px solid #dc3545;
+}
+
+.history-item.failure .history-icon {
+  color: #dc3545;
+}
+
+.history-item .history-time {
+  font-family: monospace;
+  font-size: 1.1em;
+  font-weight: bold;
+  margin-right: 15px;
+  min-width: 70px;
+}
+
+.history-item .history-result {
+  flex: 1;
+  color: #333;
+}
+
+.history-item:hover {
+  transform: translateX(5px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* Start smelting button */
+#startSmeltBtn {
+  width: 100%;
+  padding: 15px;
+  font-size: 1.2em;
+  margin-top: 20px;
+  background: linear-gradient(135deg, #ff6600, #ff8833);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+#startSmeltBtn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ff8833, #ffaa55);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 102, 0, 0.4);
+}
+
+#startSmeltBtn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  opacity: 0.5;
 }

@@ -651,46 +651,12 @@ window.setPresetTime = function(time) {
   updateTimerDisplay();
 };
 
-// Update recipe buttons
-function updateRecipeButtons() {
-  const container = document.getElementById('recipeButtons');
-  if (!container) return;
-  
-  container.innerHTML = '';
-  
-  for (const [recipeKey, recipe] of Object.entries(gameData.furnaceData.recipes)) {
-    const canCraft = canCraftRecipe(recipeKey);
-    
-    const button = document.createElement('button');
-    button.className = `main-btn recipe-btn ${canCraft ? '' : 'disabled'}`;
-    button.disabled = !canCraft || gameData.furnaceData.isRunning;
-    button.onclick = () => startSmelt(recipeKey);
-    
-    const inputText = Object.entries(recipe.inputs)
-      .map(([res, amt]) => `${amt} ${res}`)
-      .join(' + ');
-    
-    const outputText = Object.entries(recipe.output)
-      .map(([res, amt]) => `${amt} ${res}`)
-      .join(' + ');
-    
-    button.innerHTML = `
-      <div class="recipe-name">${recipe.name}</div>
-      <div class="recipe-formula">${inputText} → ${outputText}</div>
-      <div class="recipe-time">Time: ${recipe.minTime/1000}s - ${recipe.maxTime/1000}s</div>
-    `;
-    
-    container.appendChild(button);
-  }
-}
-
 // Update furnace UI
-function updateFurnaceUI() {
-  updateRecipeButtons();
-  
+export function updateFurnaceUI() {
   const timer = document.getElementById('furnaceTimer');
   const progress = document.getElementById('furnaceProgress');
   const stopBtn = document.getElementById('furnaceStopBtn');
+  const furnaceStatus = document.getElementById('furnaceStatus');
   
   if (gameData.furnaceData.isRunning && timer) {
     const elapsed = getCurrentSmeltTime();
@@ -704,50 +670,18 @@ function updateFurnaceUI() {
     }
     
     if (stopBtn) stopBtn.style.display = 'block';
+    if (furnaceStatus) furnaceStatus.style.display = 'block';
   } else {
     if (timer) timer.textContent = 'Ready';
     if (progress) progress.innerHTML = '';
     if (stopBtn) stopBtn.style.display = 'none';
-  }
-  
-  updateAttemptHistory();
-}
-
-// Update attempt history display
-function updateAttemptHistory() {
-  const container = document.getElementById('attemptHistory');
-  if (!container) return;
-  
-  container.innerHTML = '';
-  
-  for (const [recipeKey, recipe] of Object.entries(gameData.furnaceData.recipes)) {
-    if (recipe.attempts.length === 0) continue;
+    if (furnaceStatus) furnaceStatus.style.display = 'none';
     
-    const section = document.createElement('div');
-    section.className = 'recipe-history';
-    
-    const header = document.createElement('h5');
-    header.textContent = recipe.name;
-    section.appendChild(header);
-    
-    const historyList = document.createElement('div');
-    historyList.className = 'history-list';
-    
-    recipe.attempts.slice(-5).reverse().forEach(attempt => {
-      const item = document.createElement('div');
-      item.className = `history-item ${attempt.result.toLowerCase().replace(/\s+/g, '-')}`;
-      
-      item.innerHTML = `
-        <span class="attempt-time">${(attempt.elapsedTime / 1000).toFixed(1)}s</span>
-        <span class="attempt-result">${attempt.result}</span>
-        <span class="attempt-timestamp">${attempt.timestamp}</span>
-      `;
-      
-      historyList.appendChild(item);
-    });
-    
-    section.appendChild(historyList);
-    container.appendChild(section);
+    // Show recipe selection when not running
+    const timerSection = document.getElementById('timerSection');
+    if (timerSection && gameData.furnaceData.selectedRecipe) {
+      timerSection.style.display = 'block';
+    }
   }
 }
 
@@ -757,7 +691,17 @@ window.handleStopSmelt = function() {
   if (result) {
     // Show result notification (you can customize this)
     console.log(`Smelt result: ${result.result} (${result.attempt.elapsedTime}ms)`);
+    
+    // Update the history for the selected recipe
+    if (gameData.furnaceData.selectedRecipe && window.handleRecipeSelection) {
+      // Trigger a refresh of the history by calling the selection handler
+      const dropdown = document.getElementById('recipeDropdown');
+      if (dropdown && dropdown.value === gameData.furnaceData.selectedRecipe) {
+        window.handleRecipeSelection();
+      }
+    }
   }
+  updateFurnaceUI();
 };
 
 // Reset furnace data for new game (call this from your game reset function)

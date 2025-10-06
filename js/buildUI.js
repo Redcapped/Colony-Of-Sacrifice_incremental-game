@@ -1,14 +1,16 @@
 import {gameData} from './gamedata.js'
-import { capitalize,getTotalAnts,buyBuilding,updateTimerDisplay} from './coregame.js';
+import { capitalize,getTotalAnts,buyBuilding,updateTimerDisplay,startSmelt} from './coregame.js';
 import { updateBuildingText } from './game.js';
 import { adjustSacrificeLevel,performSacrifice,buyTotem } from './sacrifice.js';
 export function buildUI(){
-      buildResourceUI();
-      buildAntUI();
-      buildStatUI();
-      buildBuildingUI();
-      buildSacrificeUI();
-      buildFurnaceUI();
+  buildResourceUI();
+  buildAntUI();
+  buildStatUI();
+  buildBuildingUI();
+  buildSacrificeUI();
+  buildFurnaceUI();
+  // After furnace UI is built, refresh its dynamic parts (have/need and Start button)
+  refreshSelectedRecipeUI();
 }
 function buildAntUI() {
   const section = document.getElementById("antSection");
@@ -379,41 +381,65 @@ function buildFurnaceUI() {
   
   container.innerHTML = `
     <div class="furnace-panel">
-      <h3>Furnace</h3>
+      <h3>🔥 Furnace</h3>
       
-      <div class="timer-setting">
+      <!-- Section 1: Recipe Selection -->
+      <div class="furnace-section">
+        <h4>Select Recipe</h4>
+        <select id="recipeDropdown" class="recipe-dropdown">
+          <option value="">-- Select a Recipe --</option>
+        </select>
+      </div>
+      
+      <!-- Section 2: Timer Duration -->
+      <div class="furnace-section" id="timerSection" style="display:none;">
         <h4>Set Timer Duration</h4>
         <div class="timer-controls">
-          <input type="range" id="timerSlider" min="1000" max="15000" step="100" value="${gameData.furnaceData.playerSetTime}">
+          <input type="range" id="timerSlider" min="1000" max="30000" step="100" value="${gameData.furnaceData.playerSetTime}">
           <span id="timerDisplay">${(gameData.furnaceData.playerSetTime / 1000).toFixed(1)}s</span>
         </div>
         <div class="preset-buttons">
-          <button class="preset-btn" onclick="setPresetTime(3000)">3s</button>
           <button class="preset-btn" onclick="setPresetTime(5000)">5s</button>
-          <button class="preset-btn" onclick="setPresetTime(7000)">7s</button>
           <button class="preset-btn" onclick="setPresetTime(10000)">10s</button>
+          <button class="preset-btn" onclick="setPresetTime(15000)">15s</button>
+          <button class="preset-btn" onclick="setPresetTime(20000)">20s</button>
+          <button class="preset-btn" onclick="setPresetTime(25000)">25s</button>
         </div>
+        
+        <div class="recipe-info" id="recipeInfo">
+          <p><strong>Selected:</strong> <span id="selectedRecipeName">None</span></p>
+          <p><strong>Ingredients:</strong> <span id="selectedRecipeInputs">-</span></p>
+          <p><strong>Output:</strong> <span id="selectedRecipeOutput">-</span></p>
+          <p><strong>Target Range:</strong> <span id="selectedRecipeRange">-</span></p>
+        </div>
+        
+        <button id="startSmeltBtn" class="main-btn" onclick="handleStartSmelt()">
+          Start Smelting
+        </button>
       </div>
       
-      <div class="furnace-status">
+      <!-- Furnace Status (shown during smelting) -->
+      <div class="furnace-status" id="furnaceStatus" style="display:none;">
         <div id="furnaceTimer">Ready</div>
         <div id="furnaceProgress"></div>
-        <button id="furnaceStopBtn" class="main-btn" style="display:none" onclick="handleStopSmelt()">
+        <button id="furnaceStopBtn" class="main-btn" onclick="handleStopSmelt()">
           Stop Early
         </button>
       </div>
       
-      <div class="recipe-selection">
-        <h4>Recipes</h4>
-        <div id="recipeButtons"></div>
-      </div>
-      
-      <div class="attempt-history">
+      <!-- Section 3: Attempt History -->
+      <div class="furnace-section" id="historySection" style="display:none;">
         <h4>Attempt History</h4>
         <div id="attemptHistory"></div>
       </div>
     </div>
   `;
+  
+  // Add event listener for recipe dropdown
+  const dropdown = document.getElementById('recipeDropdown');
+  if (dropdown) {
+    dropdown.addEventListener('change', handleRecipeSelection);
+  }
   
   // Add event listener for timer slider
   const slider = document.getElementById('timerSlider');
@@ -423,4 +449,183 @@ function buildFurnaceUI() {
       updateTimerDisplay();
     });
   }
+  
+  // Populate recipe dropdown
+  updateRecipeDropdown();
 }
+
+// Helper function to update recipe dropdown
+function updateRecipeDropdown() {
+  const dropdown = document.getElementById('recipeDropdown');
+  if (!dropdown) return;
+  
+  // Keep the default option
+  dropdown.innerHTML = '<option value="">-- Select a Recipe --</option>';
+
+  // Add each recipe as an option (always selectable)
+  for (const [recipeKey, recipe] of Object.entries(gameData.furnaceData.recipes)) {
+    const option = document.createElement('option');
+    option.value = recipeKey;
+    option.textContent = recipe.name;
+    dropdown.appendChild(option);
+  }
+}
+
+// Handle recipe selection from dropdown
+window.handleRecipeSelection = function() {
+  const dropdown = document.getElementById('recipeDropdown');
+  const selectedRecipe = dropdown.value;
+  
+  const timerSection = document.getElementById('timerSection');
+  const historySection = document.getElementById('historySection');
+  
+  if (selectedRecipe) {
+    // Show timer section and history
+    timerSection.style.display = 'block';
+    historySection.style.display = 'block';
+    
+    // Update recipe info
+    const recipe = gameData.furnaceData.recipes[selectedRecipe];
+    document.getElementById('selectedRecipeName').textContent = recipe.name;
+    
+    // Show inputs with availability (have / need)
+    const inputsEl = document.getElementById('selectedRecipeInputs');
+    inputsEl.innerHTML = '';
+    for (const [res, amt] of Object.entries(recipe.inputs)) {
+      const have = (gameData.resources[res]?.amount) || 0;
+      const span = document.createElement('span');
+      span.textContent = `${res}: ${have} / ${amt}`;
+      span.style.marginRight = '12px';
+      if (have >= amt) {
+        span.style.color = '#28a745'; // green
+      } else {
+        span.style.color = '#dc3545'; // red
+      }
+      inputsEl.appendChild(span);
+    }
+    
+    // Show output
+    const output = Object.entries(recipe.output)
+      .map(([res, amt]) => `${amt} ${res}`)
+      .join(', ');
+    document.getElementById('selectedRecipeOutput').textContent = output;
+    
+    // Show target range
+    const minS = (recipe.minTime / 1000).toFixed(1);
+    const maxS = (recipe.maxTime / 1000).toFixed(1);
+    // The exact target is hidden from the player; display only min/max and a hint
+    document.getElementById('selectedRecipeRange').textContent = 
+      `${minS}s - ${maxS}s — (Hidden target; guess within tolerance to succeed)`;
+    
+    // Update history for this recipe
+    updateAttemptHistoryForRecipe(selectedRecipe);
+
+    // Store selected recipe in gameData
+    gameData.furnaceData.selectedRecipe = selectedRecipe;
+
+    // Enable/disable start button depending on resources and running state
+    refreshSelectedRecipeUI();
+  } else {
+    // Hide sections if no recipe selected
+    timerSection.style.display = 'none';
+    historySection.style.display = 'none';
+  }
+};
+
+// Handle start smelting
+window.handleStartSmelt = function() {
+  const selectedRecipe = gameData.furnaceData.selectedRecipe;
+  if (!selectedRecipe) {
+    alert('Please select a recipe first!');
+    return;
+  }
+  // Check resources one more time before starting
+  const recipe = gameData.furnaceData.recipes[selectedRecipe];
+  for (const [res, amt] of Object.entries(recipe.inputs)) {
+    if ((gameData.resources[res]?.amount || 0) < amt) {
+      alert('Not enough resources to start this smelt.');
+      return;
+    }
+  }
+
+  startSmelt(selectedRecipe);
+  
+  // Hide recipe selection and timer section, show furnace status
+  document.getElementById('timerSection').style.display = 'none';
+  document.getElementById('furnaceStatus').style.display = 'block';
+};
+
+// Update attempt history for selected recipe
+function updateAttemptHistoryForRecipe(recipeKey) {
+  const historyDiv = document.getElementById('attemptHistory');
+  if (!historyDiv) return;
+  
+  const recipe = gameData.furnaceData.recipes[recipeKey];
+  if (!recipe || !recipe.attempts || recipe.attempts.length === 0) {
+    historyDiv.innerHTML = '<p style="color:#888;">No attempts yet for this recipe.</p>';
+    return;
+  }
+  
+  // Show last 10 attempts
+  const recentAttempts = recipe.attempts.slice(-10).reverse();
+  
+  let html = '<div class="history-list">';
+  recentAttempts.forEach((attempt, index) => {
+    const successClass = attempt.success ? 'success' : 'failure';
+    const icon = attempt.success ? '✓' : '✗';
+    html += `
+      <div class="history-item ${successClass}">
+        <span class="history-icon">${icon}</span>
+        <span class="history-time">${(attempt.actualTime / 1000).toFixed(2)}s</span>
+        <span class="history-result">${attempt.message}</span>
+      </div>
+    `;
+  });
+  html += '</div>';
+  
+  historyDiv.innerHTML = html;
+}
+
+// Periodic refresh for currently selected recipe UI (keeps counts up to date)
+export function refreshSelectedRecipeUI() {
+  const selected = gameData.furnaceData.selectedRecipe;
+  const startBtn = document.getElementById('startSmeltBtn');
+  const timerSection = document.getElementById('timerSection');
+  if (!selected) {
+    if (startBtn) startBtn.disabled = true;
+    return;
+  }
+  const recipe = gameData.furnaceData.recipes[selected];
+  let canCraft = true;
+  for (const [res, amt] of Object.entries(recipe.inputs)) {
+    if ((gameData.resources[res]?.amount || 0) < amt) {
+      canCraft = false;
+      break;
+    }
+  }
+
+  // Update displayed inputs (have / need) so counts/colors refresh live
+  const inputsEl = document.getElementById('selectedRecipeInputs');
+  if (inputsEl) {
+    inputsEl.innerHTML = '';
+    for (const [res, amt] of Object.entries(recipe.inputs)) {
+      const have = (gameData.resources[res]?.amount) || 0;
+      const span = document.createElement('span');
+      span.textContent = `${res}: ${have} / ${amt}`;
+      span.style.marginRight = '12px';
+      if (have >= amt) {
+        span.style.color = '#28a745'; // green
+      } else {
+        span.style.color = '#dc3545'; // red
+      }
+      inputsEl.appendChild(span);
+    }
+  }
+
+  // Disable start if furnace is running or not enough resources
+  if (startBtn) startBtn.disabled = gameData.furnaceData.isRunning || !canCraft;
+
+  // ensure timer section visible when selected
+  if (timerSection) timerSection.style.display = 'block';
+}
+// No polling here: refreshSelectedRecipeUI() is called from update_resource() to keep counts live

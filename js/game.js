@@ -10,6 +10,15 @@ export function openTab(tabName) {
   const tab = document.getElementById(tabName);
   if (tab) tab.classList.add("active");
 }
+export function openMainTab(tab) {
+  // Remove active class from all main subtabs
+  document.querySelectorAll(".main-subtab").forEach(t => t.classList.remove("active"));
+  document.getElementById("main-" + tab).classList.add("active");
+  
+  // Update button states
+  document.querySelectorAll("#main .tab-buttons button").forEach(btn => btn.classList.remove("active"));
+  document.getElementById("main" + capitalize(tab) + "Btn").classList.add("active");
+}
 export function openResearchTab(tab){
   document.querySelectorAll(".research-subtab").forEach(t=>t.classList.remove("active"));
   document.getElementById("research-"+tab).classList.add("active");
@@ -126,11 +135,13 @@ export function initGame() {
 
   document.getElementById('recruitAntBtn')?.addEventListener('click', recruitAnt);
 
+  // Main subtabs
+  document.getElementById('mainCollectionBtn')?.addEventListener('click', () => openMainTab('collection'));
+  document.getElementById('mainFurnaceBtn')?.addEventListener('click', () => openMainTab('furnace'));
 
    // Research subtabs
   document.getElementById('antsAssignmentBtn')?.addEventListener('click', () => openAntsTab('assignment'));
   document.getElementById('antsSacrificeBtn')?.addEventListener('click', () => openAntsTab('sacrifice'));
-  document.getElementById('antsFurnaceBtn')?.addEventListener('click', () => openAntsTab('furnace'));
   // Ant assignment
   document.getElementById('btnAntWaterMinus')?.addEventListener('click', () => adjustAnt('water', -1));
   document.getElementById('btnAntWaterPlus')?.addEventListener('click', () => adjustAnt('water', 1));

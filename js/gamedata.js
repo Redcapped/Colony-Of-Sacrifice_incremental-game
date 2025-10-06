@@ -55,7 +55,8 @@ export function getDefaultGameData() {
       currentSmelt: null,
       smeltStartTime: null,
       isRunning: false,
-      playerSetTime: 15_000, 
+      playerSetTime: 15_000,
+      selectedRecipe: null,
     
       recipes: {
         charcoal: {

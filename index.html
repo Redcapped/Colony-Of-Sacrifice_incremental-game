@@ -29,6 +29,14 @@
     <div id="main" class="tab active">
     <h1>the Sacrifice colony</h1>
 
+    <!-- Subtab buttons for Main tab -->
+    <div class="tab-buttons">
+      <button id="mainCollectionBtn" class="active">Collection</button>
+      <button id="mainFurnaceBtn">Furnace</button>
+    </div>
+
+    <!-- Collection subtab -->
+    <div id="main-collection" class="main-subtab active">
     <div class="main-grid">
 
   <!-- LEFT COLUMN (all rows for buttons/text) -->
@@ -78,8 +86,14 @@
   </div>
 
 </div>
+    </div> <!-- end main-collection subtab -->
 
-  </div>
+    <!-- Furnace subtab -->
+    <div id="main-furnace" class="main-subtab">
+      <div id="furnaceContainer"></div>
+    </div>
+
+  </div> <!-- end main tab -->
 
 
     <!-- Research Tab -->
@@ -106,9 +120,8 @@
   
   <!-- Subtab buttons for Ants tab -->
   <div class="tab-buttons">
-    <button id="antsAssignmentBtn">Ant Assignment</button>
+    <button id="antsAssignmentBtn" class="active">Ant Assignment</button>
     <button id="antsSacrificeBtn">Sacrifice Ants</button>
-    <button id="antsFurnaceBtn">Furnace</button>
   </div>
 
   <!-- Assignment subtab -->
@@ -195,14 +208,7 @@
       </div>
       </div>
   </div>
-  <div id="ants-furnace" class="ants-subtab">
-    <div class="ants-container">
-    <div id="furnaceContainer">
 
-
-    </div>
-    </div>
-  </div>
   <!-- Sacrifice subtab -->
   <div id="ants-sacrifice" class="ants-subtab">
     <div class="ants-container">
